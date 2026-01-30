@@ -1,7 +1,11 @@
 import { useState } from "react";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import useAxiosSecure from "../../../Hooks/useAxiosSecure";
+import toast from "react-hot-toast";
 
 const AddCases = () => {
+  const axiosInstance = useAxiosSecure();
+
   const [formData, setFormData] = useState({
     fileNo: "",
     caseNo: "",
@@ -21,15 +25,45 @@ const AddCases = () => {
 
   const [errors, setErrors] = useState({});
 
+  /* ================= FETCH DROPDOWN DATA ================= */
+  const { data: companies = [] } = useQuery({
+    queryKey: ["companies"],
+    queryFn: async () => {
+      const res = await axiosInstance.get("/companies");
+      return res.data;
+    },
+  });
+
+  const { data: courts = [] } = useQuery({
+    queryKey: ["courts"],
+    queryFn: async () => {
+      const res = await axiosInstance.get("/courts");
+      return res.data;
+    },
+  });
+
+  const { data: caseTypes = [] } = useQuery({
+    queryKey: ["caseTypes"],
+    queryFn: async () => {
+      const res = await axiosInstance.get("/cases-type");
+      return res.data;
+    },
+  });
+
+  const { data: policeStations = [] } = useQuery({
+    queryKey: ["policeStations"],
+    queryFn: async () => {
+      const res = await axiosInstance.get("/police-station");
+      return res.data;
+    },
+  });
+
+  /* ================= MUTATION ================= */
   const mutation = useMutation({
     mutationFn: (newCase) =>
-      fetch("/api/cases", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(newCase),
-      }).then((res) => res.json()),
+      axiosInstance.post("/add-cases", newCase).then((res) => res.data),
     onSuccess: () => {
-      alert("Case added successfully!");
+      toast.success("Case added successfully!");
       setFormData({
         fileNo: "",
         caseNo: "",
@@ -48,11 +82,14 @@ const AddCases = () => {
       });
       setErrors({});
     },
+    onError: (error) => {
+      console.error(error);
+      toast.error("Failed to add case. Please try again.");
+    },
   });
 
   const handleChange = (e) => {
     setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
-    // Remove error when user types
     setErrors((prev) => ({ ...prev, [e.target.name]: "" }));
   };
 
@@ -60,9 +97,7 @@ const AddCases = () => {
     const requiredFields = ["fileNo", "caseNo", "date", "court", "firstParty"];
     const newErrors = {};
     requiredFields.forEach((field) => {
-      if (!formData[field]) {
-        newErrors[field] = "This field is required";
-      }
+      if (!formData[field]) newErrors[field] = "This field is required";
     });
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -154,8 +189,11 @@ const AddCases = () => {
             }`}
           >
             <option value="">--Select a Court--</option>
-            <option value="Court A">Court A</option>
-            <option value="Court B">Court B</option>
+            {courts.map((court) => (
+              <option key={court._id} value={court.name}>
+                {court.name}
+              </option>
+            ))}
           </select>
           {errors.court && (
             <span className="text-red-500 text-sm mt-1">{errors.court}</span>
@@ -174,11 +212,55 @@ const AddCases = () => {
             className="select select-bordered w-full"
           >
             <option value="">--Select Company/Group--</option>
-            <option value="Company 1">Company 1</option>
-            <option value="Company 2">Company 2</option>
+            {companies.map((company) => (
+              <option key={company._id} value={company.name}>
+                {company.name}
+              </option>
+            ))}
           </select>
         </div>
 
+        {/* Case Type */}
+        <div className="form-control w-full">
+          <label className="label">
+            <span className="label-text">Case Type</span>
+          </label>
+          <select
+            name="caseType"
+            value={formData.caseType}
+            onChange={handleChange}
+            className="select select-bordered w-full"
+          >
+            <option value="">--Select Case Type--</option>
+            {caseTypes.map((ct) => (
+              <option key={ct._id} value={ct.name}>
+                {ct.name}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        {/* Police Station */}
+        <div className="form-control w-full">
+          <label className="label">
+            <span className="label-text">Police Station</span>
+          </label>
+          <select
+            name="policeStation"
+            value={formData.policeStation}
+            onChange={handleChange}
+            className="select select-bordered w-full"
+          >
+            <option value="">--Select Police Station--</option>
+            {policeStations.map((ps) => (
+              <option key={ps._id} value={ps.name}>
+                {ps.name}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        {/* Rest of the form remains unchanged */}
         {/* Fixed For */}
         <div className="form-control w-full">
           <label className="label">
@@ -245,40 +327,6 @@ const AddCases = () => {
           />
         </div>
 
-        {/* Case Type */}
-        <div className="form-control w-full">
-          <label className="label">
-            <span className="label-text">Case Type</span>
-          </label>
-          <select
-            name="caseType"
-            value={formData.caseType}
-            onChange={handleChange}
-            className="select select-bordered w-full"
-          >
-            <option value="">--Select Case Type--</option>
-            <option value="Civil">Civil</option>
-            <option value="Criminal">Criminal</option>
-          </select>
-        </div>
-
-        {/* Police Station */}
-        <div className="form-control w-full">
-          <label className="label">
-            <span className="label-text">Police Station</span>
-          </label>
-          <select
-            name="policeStation"
-            value={formData.policeStation}
-            onChange={handleChange}
-            className="select select-bordered w-full"
-          >
-            <option value="">--Select Police Station--</option>
-            <option value="Station 1">Station 1</option>
-            <option value="Station 2">Station 2</option>
-          </select>
-        </div>
-
         {/* Mobile No */}
         <div className="form-control w-full">
           <label className="label">
@@ -309,7 +357,7 @@ const AddCases = () => {
           />
         </div>
 
-        {/* Comments / Others */}
+        {/* Comments */}
         <div className="form-control md:col-span-2">
           <label className="label">
             <span className="label-text">Comments / Others</span>
@@ -325,8 +373,12 @@ const AddCases = () => {
 
         {/* Submit Button */}
         <div className="md:col-span-2">
-          <button type="submit" className="btn btn-primary w-full">
-            Add Case
+          <button
+            type="submit"
+            className="btn btn-primary w-full"
+            disabled={mutation.isLoading} 
+          >
+            {mutation.isLoading ? "Adding..." : "Add Case"} {/* Loading text */}
           </button>
         </div>
       </form>

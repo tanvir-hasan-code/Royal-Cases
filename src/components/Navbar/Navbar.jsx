@@ -39,7 +39,7 @@ const Navbar = () => {
   );
 
   return (
-    <div className="w-full bg-gradient-to-r from-[#0f172a] to-[#1e293b] text-white shadow-md">
+    <div className="w-full bg-gradient-to-r from-[#22252c] to-[#081c39] text-white shadow-md">
       <div className="flex items-center justify-between px-5 h-14">
 
         {/* LEFT */}
