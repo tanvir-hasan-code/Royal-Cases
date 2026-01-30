@@ -1,82 +1,223 @@
 import { useState } from "react";
+import useAxiosSecure from "../../../Hooks/useAxiosSecure";
+import { useQuery } from "@tanstack/react-query";
+import toast from "react-hot-toast";
 
 const CaseTypeSetup = () => {
-  const [courtName, setCourtName] = useState("");
-  const [courts, setCourts] = useState([]);
-  const [editIndex, setEditIndex] = useState(null);
+  const axiosInstance = useAxiosSecure();
 
-  const handleAdd = () => {
-    const name = courtName.trim();
-    if (!name) return alert("Please enter a court name!");
+  const [editId, setEditId] = useState(null);
+  const [editValue, setEditValue] = useState("");
 
-    if (editIndex !== null) {
-      // update existing
-      const updated = [...courts];
-      updated[editIndex] = name;
-      setCourts(updated);
-      setEditIndex(null);
-    } else {
-      // add new
-      setCourts([...courts, name]);
+  const [deleteId, setDeleteId] = useState(null);
+  const [deleteName, setDeleteName] = useState("");
+
+  /* ================= FETCH ================= */
+  const {
+    data: caseTypes = [],
+    isLoading,
+    refetch,
+  } = useQuery({
+    queryKey: ["caseTypes"],
+    queryFn: async () => {
+      const res = await axiosInstance.get("/cases-type");
+      return res.data;
+    },
+  });
+
+  /* ================= ADD ================= */
+  const handleAdd = async (e) => {
+    e.preventDefault();
+    const name = e.target.casesType.value.trim();
+
+    if (!name) {
+      toast.error("Case type name is required!");
+      return;
     }
 
-    setCourtName("");
+    const toastId = toast.loading("Adding case type...");
+    try {
+      await axiosInstance.post("/cases-type", { name });
+      toast.success("Case type added!", { id: toastId });
+      e.target.reset();
+      refetch();
+    } catch {
+      toast.error("Failed to add case type", { id: toastId });
+    }
   };
 
-  const handleEdit = (index) => {
-    setCourtName(courts[index]);
-    setEditIndex(index);
+  /* ================= UPDATE ================= */
+  const handleUpdate = async (id) => {
+    if (!editValue.trim()) {
+      toast.error("Case type name required!");
+      return;
+    }
+
+    const toastId = toast.loading("Updating...");
+    try {
+      await axiosInstance.patch(`/cases-type/${id}`, {
+        name: editValue,
+      });
+      toast.success("Updated successfully!", { id: toastId });
+      setEditId(null);
+      setEditValue("");
+      refetch();
+    } catch {
+      toast.error("Update failed", { id: toastId });
+    }
   };
 
-  const handleDelete = (index) => {
-    if (confirm("Are you sure you want to delete this court?")) {
-      setCourts(courts.filter((_, i) => i !== index));
+  /* ================= DELETE ================= */
+  const confirmDelete = async () => {
+    const toastId = toast.loading("Deleting...");
+    try {
+      await axiosInstance.delete(`/cases-type/${deleteId}`);
+      toast.success("Deleted successfully!", { id: toastId });
+      setDeleteId(null);
+      setDeleteName("");
+      refetch();
+    } catch {
+      toast.error("Delete failed", { id: toastId });
     }
   };
 
   return (
-    <div className="bg-white p-6 rounded-lg shadow-md w-full max-w-md mx-auto">
-      <h2 className="text-2xl font-semibold mb-4 text-gray-700">Court Setup</h2>
+    <div className="bg-white p-6 rounded-xl shadow-md w-full max-w-3xl mx-auto">
+      <h2 className="text-2xl font-semibold mb-6 text-gray-700">
+        Case Type Setup
+      </h2>
 
-      {/* Input field and button */}
-      <div className="flex gap-2 mb-4">
+      {/* ADD FORM */}
+      <form onSubmit={handleAdd} className="flex gap-2 mb-6">
         <input
           type="text"
-          placeholder="Enter Court Name"
-          className="input input-bordered flex-1"
-          value={courtName}
-          onChange={(e) => setCourtName(e.target.value)}
+          name="casesType"
+          placeholder="Enter Case Type"
+          className="input input-bordered w-full"
         />
-        <button className="btn btn-primary" onClick={handleAdd}>
-          {editIndex !== null ? "Update" : "Add"}
-        </button>
-      </div>
+        <button className="btn btn-primary">Add</button>
+      </form>
 
-      {/* Display list of courts */}
-      <ul className="flex flex-col gap-2">
-        {courts.map((court, i) => (
-          <li
-            key={i}
-            className="flex justify-between items-center p-2 rounded border hover:bg-gray-50"
-          >
-            <span>{court}</span>
-            <div className="flex gap-2">
+      {/* LIST */}
+      {isLoading ? (
+        <p className="text-center text-gray-500">Loading...</p>
+      ) : caseTypes.length === 0 ? (
+        <p className="text-center text-gray-400">
+          No case type added yet
+        </p>
+      ) : (
+        <div className="overflow-x-auto">
+          <table className="table table-zebra w-full">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Case Type</th>
+                <th className="text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {caseTypes.map((item, index) => (
+                <tr key={item._id}>
+                  <td>{index + 1}</td>
+
+                  <td>
+                    {editId === item._id ? (
+                      <input
+                        value={editValue}
+                        onChange={(e) =>
+                          setEditValue(e.target.value)
+                        }
+                        className="input input-sm input-bordered w-full"
+                      />
+                    ) : (
+                      item.name
+                    )}
+                  </td>
+
+                  <td className="text-right space-x-2">
+                    {editId === item._id ? (
+                      <>
+                        <button
+                          onClick={() =>
+                            handleUpdate(item._id)
+                          }
+                          className="btn btn-xs btn-success"
+                        >
+                          Save
+                        </button>
+                        <button
+                          onClick={() => setEditId(null)}
+                          className="btn btn-xs btn-ghost"
+                        >
+                          Cancel
+                        </button>
+                      </>
+                    ) : (
+                      <>
+                        <button
+                          onClick={() => {
+                            setEditId(item._id);
+                            setEditValue(item.name);
+                          }}
+                          className="btn btn-xs btn-warning"
+                        >
+                          Edit
+                        </button>
+                        <button
+                          onClick={() => {
+                            setDeleteId(item._id);
+                            setDeleteName(item.name);
+                          }}
+                          className="btn btn-xs btn-error"
+                        >
+                          Delete
+                        </button>
+                      </>
+                    )}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      {/* DELETE MODAL */}
+      {deleteId && (
+        <dialog open className="modal modal-open">
+          <div className="modal-box">
+            <h3 className="font-bold text-lg text-red-600">
+              Confirm Delete
+            </h3>
+            <p className="py-4">
+              Are you sure you want to delete
+              <span className="font-semibold">
+                {" "}
+                {deleteName}
+              </span>
+              ?
+            </p>
+
+            <div className="modal-action">
               <button
-                className="btn btn-xs btn-warning"
-                onClick={() => handleEdit(i)}
+                onClick={() => {
+                  setDeleteId(null);
+                  setDeleteName("");
+                }}
+                className="btn btn-ghost"
               >
-                Edit
+                Cancel
               </button>
               <button
-                className="btn btn-xs btn-error"
-                onClick={() => handleDelete(i)}
+                onClick={confirmDelete}
+                className="btn btn-error"
               >
                 Delete
               </button>
             </div>
-          </li>
-        ))}
-      </ul>
+          </div>
+        </dialog>
+      )}
     </div>
   );
 };
