@@ -267,10 +267,11 @@ const AddCases = () => {
             <span className="label-text">Fixed For</span>
           </label>
           <input
-            type="date"
+            type="text"
             name="fixedFor"
             value={formData.fixedFor}
             onChange={handleChange}
+            placeholder="e.g. Hearing, Argument, Order, Evidence"
             className="input input-bordered w-full"
           />
         </div>
@@ -376,7 +377,7 @@ const AddCases = () => {
           <button
             type="submit"
             className="btn btn-primary w-full"
-            disabled={mutation.isLoading} 
+            disabled={mutation.isLoading}
           >
             {mutation.isLoading ? "Adding..." : "Add Case"} {/* Loading text */}
           </button>
