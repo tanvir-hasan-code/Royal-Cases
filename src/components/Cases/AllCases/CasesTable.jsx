@@ -76,7 +76,7 @@ const CasesTable = ({ cases, onEdit, onDelete, onView }) => {
 
   return (
     <div className="w-full rounded-lg shadow">
-      <div className="overflow-visible min-h-auto">
+      <div  id="cases-table" className="overflow-visible min-h-auto">
         <table className="table table-zebra w-full border-separate border-spacing-0">
           <thead className="bg-base-200">
             <tr>
@@ -90,7 +90,7 @@ const CasesTable = ({ cases, onEdit, onDelete, onView }) => {
               <th>Fixed For</th>
               <th>Status</th>
               <th>Call</th>
-              <th className="text-right">Action</th>
+              <th className="text-right action-col">Action</th>
             </tr>
           </thead>
 
@@ -141,7 +141,7 @@ const CasesTable = ({ cases, onEdit, onDelete, onView }) => {
                     )}
                   </td>
 
-                  <td className="text-right overflow-visible">
+                  <td className="text-right action-col overflow-visible">
                     <div onClick={(e) => e.stopPropagation()}>
                       <ActionDropdown caseData={c} />
                     </div>

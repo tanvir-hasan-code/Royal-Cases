@@ -5,6 +5,9 @@ import useAxiosSecure from "../../../Hooks/useAxiosSecure";
 import toast from "react-hot-toast";
 import CasesTable from "./CasesTable";
 import EditCaseModal from "./EditCaseModal";
+import { FaPrint, FaFilePdf } from "react-icons/fa";
+import jsPDF from "jspdf";
+import html2canvas from "html2canvas";
 
 const LIMIT = 8;
 
@@ -12,7 +15,6 @@ const AllCases = () => {
   const axiosSecure = useAxiosSecure();
   const [searchParams, setSearchParams] = useSearchParams();
 
-  // ইউআরএল থেকে ইনিশিয়াল ভ্যালু নেওয়া
   const initialPage = useMemo(
     () => parseInt(searchParams.get("page")) || 1,
     [],
@@ -33,18 +35,16 @@ const AllCases = () => {
       );
       return res.data;
     },
-    keepPreviousData: true, // ডাটা লোড হওয়ার সময় আগের ডাটা ধরে রাখবে, ফলে পেজ কাঁপবে না
+    keepPreviousData: true,
   });
 
   const totalPages = data?.totalPages || 0;
 
-  // URL Query Params আপডেট করার নিরাপদ নিয়ম
   useEffect(() => {
     const params = new URLSearchParams();
     if (page > 1) params.set("page", page);
     if (search) params.set("search", search);
 
-    // কেবল যদি বর্তমান সার্চ পারামস ভিন্ন হয় তবেই আপডেট করবে (লুপ আটকানোর জন্য)
     if (params.toString() !== searchParams.toString()) {
       setSearchParams(params, { replace: true });
     }
@@ -71,22 +71,140 @@ const AllCases = () => {
     }
   };
 
+  const handlePrint = () => {
+    const printContents = document
+      .getElementById("cases-table")
+      .cloneNode(true);
+
+    // Hide action columns
+    printContents.querySelectorAll(".action-col").forEach((el) => el.remove());
+
+    const printWindow = window.open("", "_blank", "width=900,height=650");
+
+    printWindow.document.write(`
+    <html>
+      <head>
+        <title>Royal Case - Cases Report</title>
+        <style>
+          body { font-family: Arial, sans-serif; padding: 20px; }
+          .header { text-align: center; margin-bottom: 20px; }
+          .header h1 { margin: 0; font-size: 28px; font-weight: bold; }
+          .header p { margin: 2px 0; font-size: 14px; color: #555; }
+          .report-title { margin-top: 10px; font-size: 18px; font-weight: 600; }
+          table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+          th, td { border: 1px solid #ccc; padding: 8px; text-align: left; font-size: 12px; }
+          th { background-color: #f3f3f3; }
+          tr:nth-child(even) { background-color: #fafafa; }
+        </style>
+      </head>
+      <body>
+        <div class="header">
+          <h1>Royal Case</h1>
+          <p>123 Legal Street, Dhaka, Bangladesh</p>
+          <p>Phone: +880 1234 567890 | Email: info@royalcase.com</p>
+          <p>Website: www.royalcase.com</p>
+          <div class="report-title">Cases Report - Page ${page}</div>
+        </div>
+        ${printContents.innerHTML}
+      </body>
+    </html>
+  `);
+
+    printWindow.document.close();
+    printWindow.focus();
+    printWindow.print();
+  };
+
+  const handleSavePDF = async () => {
+    const element = document.getElementById("cases-table");
+    const canvas = await html2canvas(element, { scale: 2 });
+    const imgData = canvas.toDataURL("image/png");
+
+    const pdf = new jsPDF("p", "mm", "a4");
+    const imgProps = pdf.getImageProperties(imgData);
+    const pdfWidth = pdf.internal.pageSize.getWidth();
+    const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+
+    pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight);
+    pdf.save(`cases_page_${page}.pdf`);
+  };
+
+  // const handlePrint = () => {
+  //   const printContents = document.getElementById("cases-table").innerHTML;
+  //   const printWindow = window.open("", "_blank", "width=900,height=650");
+  //   printWindow.document.write(`
+  //   <html>
+  //     <head>
+  //       <title>Print Cases</title>
+  //       <style>
+  //         body {
+  //           font-family: Arial, sans-serif;
+  //           padding: 20px;
+  //         }
+  //         h2 {
+  //           text-align: center;
+  //           margin-bottom: 20px;
+  //         }
+  //         table {
+  //           width: 100%;
+  //           border-collapse: collapse;
+  //           margin-bottom: 20px;
+  //         }
+  //         th, td {
+  //           border: 1px solid #ccc;
+  //           padding: 8px;
+  //           text-align: left;
+  //           font-size: 12px;
+  //         }
+  //         th {
+  //           background-color: #f3f3f3;
+  //         }
+  //         tr:nth-child(even) {
+  //           background-color: #fafafa;
+  //         }
+  //       </style>
+  //     </head>
+  //     <body>
+  //       <h2>Cases - Page ${page}</h2>
+  //       ${printContents}
+  //     </body>
+  //   </html>
+  // `);
+  //   printWindow.document.close();
+  //   printWindow.focus();
+  //   printWindow.print();
+  // };
+
   return (
     <div className="p-4 relative">
       <h2 className="text-2xl font-bold mb-4">All Cases</h2>
 
-      {/* Search Input - এটাকেisLoading এর বাইরে রাখা হয়েছে */}
-      <div className="flex justify-end mb-4">
+      {/* Search & Buttons */}
+      <div className="flex flex-col lg:flex-row lg:justify-end gap-2 mb-2 sticky top-0  z-10 p-2 border-b border-gray-200">
         <input
           type="text"
           placeholder="Search Case No..."
-          className="input input-bordered w-64 focus:outline-primary"
+          className="input input-bordered w-full lg:w-64 focus:outline-primary"
           value={search}
           onChange={(e) => {
             setSearch(e.target.value);
             setPage(1);
           }}
         />
+        <div className="flex gap-2">
+          <button
+            className="btn btn-sm btn-primary flex items-center gap-1"
+            onClick={handlePrint}
+          >
+            <FaPrint /> Print Page
+          </button>
+          <button
+            className="btn btn-sm bg-red-500 text-white flex items-center gap-1"
+            onClick={""}
+          >
+            <FaFilePdf /> Save PDF
+          </button>
+        </div>
       </div>
 
       {isLoading ? (
@@ -96,45 +214,46 @@ const AllCases = () => {
         </div>
       ) : (
         <>
-          <CasesTable
-            cases={data?.cases || []}
-            onEdit={setEditCase}
-            onDelete={handleDelete}
-            onView={setViewCase}
-          />
-
-          {/* Pagination */}
-          <div className="flex justify-center gap-2 mt-6 items-center">
-            <button
-              className="btn btn-sm btn-outline"
-              onClick={() => setPage((p) => Math.max(p - 1, 1))}
-              disabled={page === 1}
-            >
-              Prev
-            </button>
-
-            {[...Array(totalPages).keys()].map((n) => (
-              <button
-                key={n}
-                onClick={() => setPage(n + 1)}
-                className={`btn btn-sm ${
-                  page === n + 1 ? "btn-primary" : "btn-outline"
-                }`}
-              >
-                {n + 1}
-              </button>
-            ))}
-
-            <button
-              className="btn btn-sm btn-outline"
-              onClick={() => setPage((p) => Math.min(p + 1, totalPages))}
-              disabled={page === totalPages || totalPages === 0}
-            >
-              Next
-            </button>
+          <div className="overflow-x-auto w-full">
+            <CasesTable
+              cases={data?.cases || []}
+              onEdit={setEditCase}
+              onDelete={handleDelete}
+              onView={setViewCase}
+            />
           </div>
         </>
       )}
+      {/* Pagination */}
+      <div className="flex justify-center gap-2 mt-6 items-center">
+        <button
+          className="btn btn-sm btn-outline"
+          onClick={() => setPage((p) => Math.max(p - 1, 1))}
+          disabled={page === 1}
+        >
+          Prev
+        </button>
+
+        {[...Array(totalPages).keys()].map((n) => (
+          <button
+            key={n}
+            onClick={() => setPage(n + 1)}
+            className={`btn btn-sm ${
+              page === n + 1 ? "btn-primary" : "btn-outline"
+            }`}
+          >
+            {n + 1}
+          </button>
+        ))}
+
+        <button
+          className="btn btn-sm btn-outline"
+          onClick={() => setPage((p) => Math.min(p + 1, totalPages))}
+          disabled={page === totalPages || totalPages === 0}
+        >
+          Next
+        </button>
+      </div>
 
       {/* Modals */}
       {editCase && (

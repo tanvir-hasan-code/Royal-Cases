@@ -1,2 +1,9 @@
 @import "tailwindcss";
 @plugin "daisyui";
+/* Add this in your CSS or Tailwind global styles */
+@media print {
+  .action-col {
+    display: none !important;
+  }
+}
+
