@@ -8,6 +8,7 @@ import EditCaseModal from "./EditCaseModal";
 import { FaPrint, FaFilePdf } from "react-icons/fa";
 import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
+import autoTable from "jspdf-autotable";
 
 const LIMIT = 8;
 
@@ -115,72 +116,110 @@ const AllCases = () => {
     printWindow.print();
   };
 
-  const handleSavePDF = async () => {
-    const element = document.getElementById("cases-table");
-    const canvas = await html2canvas(element, { scale: 2 });
-    const imgData = canvas.toDataURL("image/png");
+const handleSavePDF = () => {
+  if (!data?.cases || data.cases.length === 0) {
+    toast.error("No data available!");
+    return;
+  }
 
-    const pdf = new jsPDF("p", "mm", "a4");
-    const imgProps = pdf.getImageProperties(imgData);
-    const pdfWidth = pdf.internal.pageSize.getWidth();
-    const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
 
-    pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight);
-    pdf.save(`cases_page_${page}.pdf`);
-  };
+  const doc = new jsPDF("l", "mm", "a4"); 
+  const loadingToast = toast.loading("Generating Print-Style PDF...");
 
-  // const handlePrint = () => {
-  //   const printContents = document.getElementById("cases-table").innerHTML;
-  //   const printWindow = window.open("", "_blank", "width=900,height=650");
-  //   printWindow.document.write(`
-  //   <html>
-  //     <head>
-  //       <title>Print Cases</title>
-  //       <style>
-  //         body {
-  //           font-family: Arial, sans-serif;
-  //           padding: 20px;
-  //         }
-  //         h2 {
-  //           text-align: center;
-  //           margin-bottom: 20px;
-  //         }
-  //         table {
-  //           width: 100%;
-  //           border-collapse: collapse;
-  //           margin-bottom: 20px;
-  //         }
-  //         th, td {
-  //           border: 1px solid #ccc;
-  //           padding: 8px;
-  //           text-align: left;
-  //           font-size: 12px;
-  //         }
-  //         th {
-  //           background-color: #f3f3f3;
-  //         }
-  //         tr:nth-child(even) {
-  //           background-color: #fafafa;
-  //         }
-  //       </style>
-  //     </head>
-  //     <body>
-  //       <h2>Cases - Page ${page}</h2>
-  //       ${printContents}
-  //     </body>
-  //   </html>
-  // `);
-  //   printWindow.document.close();
-  //   printWindow.focus();
-  //   printWindow.print();
-  // };
+  
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(26);
+  doc.setTextColor(79, 70, 229); 
+  doc.text("Royal Case", 148, 18, { align: "center" });
 
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(10);
+  doc.setTextColor(100);
+  doc.text("123 Legal Street, Dhaka, Bangladesh", 148, 24, { align: "center" });
+  doc.text("Phone: +880 1234 567890 | Email: info@royalcase.com", 148, 29, { align: "center" });
+  
+  doc.setFontSize(14);
+  doc.setTextColor(31, 41, 55);
+  doc.setFont("helvetica", "bold");
+  doc.text(`RUNNING CASES REPORT - PAGE ${page}`, 148, 38, { align: "center" });
+  
+  doc.setDrawColor(79, 70, 229);
+  doc.setLineWidth(0.5);
+  doc.line(14, 42, 283, 42);
+
+  const tableColumn = [
+    "File No",
+    "Case No",
+    "Company",
+    "First Party",
+    "Second Party",
+    "Court",
+    "Fixed For",
+    "Status",
+    "Law & Section"
+  ];
+
+  const tableRows = data.cases.map((item) => [
+    item.fileNo || "-",
+    item.caseNo || "-",
+    item.company || "-",
+    item.firstParty || "-",
+    item.secondParty || "-",
+    item.court || "-",
+    item.fixedFor || "-",
+    item.status || "-",
+    item.lawSection || "-"
+  ]);
+
+
+  autoTable(doc, {
+    startY: 48,
+    head: [tableColumn],
+    body: tableRows,
+    theme: "grid", 
+    styles: { 
+      fontSize: 8.5, 
+      cellPadding: 3, 
+      valign: "middle",
+      font: "helvetica" 
+    },
+    headStyles: { 
+      fillColor: [79, 70, 229], 
+      textColor: [255, 255, 255], 
+      fontStyle: "bold",
+      halign: "left",
+      lineColor: [255, 255, 255],
+      lineWidth: 0.1
+    },
+    bodyStyles: {
+      lineColor: [229, 231, 235], 
+      lineWidth: 0.1
+    },
+    alternateRowStyles: {
+      fillColor: [249, 250, 251] 
+    },
+    columnStyles: {
+      8: { cellWidth: 35 }, 
+    },
+    margin: { left: 14, right: 14 },
+  });
+
+ 
+  const pageHeight = doc.internal.pageSize.height;
+  doc.setFontSize(10);
+  doc.setTextColor(0);
+  doc.text("__________________________", 14, pageHeight - 15);
+  doc.text("Prepared By", 14, pageHeight - 10);
+  
+  doc.text("__________________________", 235, pageHeight - 15);
+  doc.text("Authorized Signature", 235, pageHeight - 10);
+  doc.save(`RoyalCase_Print_Style_Page_${page}.pdf`);
+  toast.success("Print-Style PDF Downloaded!", { id: loadingToast });
+};
   return (
-    <div className="p-4 relative">
+    <div className="p-4">
       <h2 className="text-2xl font-bold mb-4">All Cases</h2>
-
-      {/* Search & Buttons */}
-      <div className="flex flex-col lg:flex-row lg:justify-end gap-2 mb-2 sticky top-0  z-10 p-2 border-b border-gray-200">
+      <div className="flex flex-col lg:flex-row lg:justify-end gap-2 mb-2  top-0  z-10 p-2 border-b border-gray-200">
         <input
           type="text"
           placeholder="Search Case No..."
@@ -200,7 +239,7 @@ const AllCases = () => {
           </button>
           <button
             className="btn btn-sm bg-red-500 text-white flex items-center gap-1"
-            onClick={""}
+            onClick={handleSavePDF}
           >
             <FaFilePdf /> Save PDF
           </button>

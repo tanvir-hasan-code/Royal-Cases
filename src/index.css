@@ -6,4 +6,12 @@
     display: none !important;
   }
 }
-
+@layer base {
+  :root {
+    color-scheme: light;
+  }
+  * {
+    --okpc: initial !important;
+    --oklc: initial !important;
+  }
+}
