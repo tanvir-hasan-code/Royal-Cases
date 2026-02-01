@@ -2,8 +2,10 @@ import { useState } from "react";
 import useAxiosSecure from "../../../Hooks/useAxiosSecure";
 import { useQuery } from "@tanstack/react-query";
 import toast from "react-hot-toast";
+import usePageTitle from "../../../Hooks/useTitle";
 
 const CourtSetup = () => {
+  usePageTitle("Court Setup")
   const axiosInstance = useAxiosSecure();
 
   const [editId, setEditId] = useState(null);

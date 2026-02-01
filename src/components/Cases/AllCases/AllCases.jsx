@@ -9,10 +9,12 @@ import { FaPrint, FaFilePdf } from "react-icons/fa";
 import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
 import autoTable from "jspdf-autotable";
+import usePageTitle from "../../../Hooks/useTitle";
 
 const LIMIT = 8;
 
 const AllCases = () => {
+  usePageTitle("All Cases")
   const axiosSecure = useAxiosSecure();
   const [searchParams, setSearchParams] = useSearchParams();
 
@@ -27,7 +29,7 @@ const AllCases = () => {
   const [editCase, setEditCase] = useState(null);
   const [viewCase, setViewCase] = useState(null);
 
-  // Fetch backend data
+  
   const { data, refetch, isLoading } = useQuery({
     queryKey: ["cases", page, search],
     queryFn: async () => {
@@ -77,7 +79,7 @@ const AllCases = () => {
       .getElementById("cases-table")
       .cloneNode(true);
 
-    // Hide action columns
+  
     printContents.querySelectorAll(".action-col").forEach((el) => el.remove());
 
     const printWindow = window.open("", "_blank", "width=900,height=650");

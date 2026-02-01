@@ -2,8 +2,10 @@ import { useState } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import useAxiosSecure from "../../../Hooks/useAxiosSecure";
 import toast from "react-hot-toast";
+import usePageTitle from "../../../Hooks/useTitle";
 
 const AddCases = () => {
+  usePageTitle("Add Cases")
   const axiosInstance = useAxiosSecure();
 
   const [formData, setFormData] = useState({

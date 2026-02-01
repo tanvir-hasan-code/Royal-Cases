@@ -10,6 +10,7 @@ import {
   FaExclamationTriangle,
 } from "react-icons/fa";
 import useAxiosSecure from "../Hooks/useAxiosSecure";
+import usePageTitle from "../Hooks/useTitle";
 
 const dashboardCards = [
   {
@@ -63,6 +64,7 @@ const dashboardCards = [
 ];
 
 const Dashboard = () => {
+	usePageTitle("Dashboard")
   const [counts, setCounts] = useState({});
   const axiosSecure = useAxiosSecure();
 
@@ -76,10 +78,10 @@ const Dashboard = () => {
   };
 
   useEffect(() => {
-    // Initial load
+   
     dashboardCards.forEach((card) => fetchCount(card));
 
-    // Refresh every 10 seconds individually
+    
     const intervals = dashboardCards.map((card) =>
       setInterval(() => fetchCount(card), 10000)
     );

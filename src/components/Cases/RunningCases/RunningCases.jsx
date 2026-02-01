@@ -9,10 +9,12 @@ import { FaPrint, FaFilePdf } from "react-icons/fa";
 import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
 import autoTable from "jspdf-autotable";
+import usePageTitle from "../../../Hooks/useTitle";
 
 const LIMIT = 8;
 
 const RunningCases = () => {
+	usePageTitle("Running Cases")
   const axiosSecure = useAxiosSecure();
   const [searchParams, setSearchParams] = useSearchParams();
 

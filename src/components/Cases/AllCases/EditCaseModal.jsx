@@ -4,8 +4,10 @@ import useAxiosSecure from "../../../Hooks/useAxiosSecure";
 import toast from "react-hot-toast";
 import { useQueryClient } from "@tanstack/react-query";
 import { useEffect, useRef } from "react";
+import usePageTitle from "../../../Hooks/useTitle";
 
 const EditCaseModal = ({ caseData, onClose, onUpdated }) => {
+  usePageTitle("Edit Case")
   const axiosInstance = useAxiosSecure();
   const queryClient = useQueryClient();
 
@@ -89,7 +91,7 @@ const EditCaseModal = ({ caseData, onClose, onUpdated }) => {
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
-    setErrors((prev) => ({ ...prev, [name]: "" })); // clear inline error on typing
+    setErrors((prev) => ({ ...prev, [name]: "" })); 
   };
 
   const validate = () => {
@@ -106,7 +108,7 @@ const EditCaseModal = ({ caseData, onClose, onUpdated }) => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (!validate()) return; // show inline errors
+    if (!validate()) return; 
     mutation.mutate(formData);
   };
 
