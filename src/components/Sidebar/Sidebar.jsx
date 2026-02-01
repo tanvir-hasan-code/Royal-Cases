@@ -20,7 +20,7 @@ const Sidebar = () => {
   const [open, setOpen] = useState(false);
 
   const menuItems = [
-    { icon: <FaHome />, text: "Dashboard", to: "/dashboard" },
+    { icon: <FaHome />, text: "Dashboard", to: "/" },
     { icon: <FaBookOpen />, text: "Daily Notes", to: "/notes" },
     {
       icon: <FaGavel />,

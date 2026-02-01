@@ -1,7 +1,6 @@
 import React from 'react';
 import { createBrowserRouter } from "react-router-dom";
 import Root from '../Root/Root';
-import Home from '../pages/Home/Home';
 import ErrorPage from '../pages/Error/ErrorPage';
 import AddCases from '../components/Cases/AddCases/AddCases';
 import AllCases from '../components/Cases/AllCases/AllCases';
@@ -10,6 +9,7 @@ import CourtSetup from '../components/MasterSetup/CourtSetup/CourtSetup';
 import CaseTypeSetup from '../components/MasterSetup/CaseTypeSetup/CaseTypeSetup';
 import PoliceStationSetup from '../components/MasterSetup/PoliceStationSetup/PoliceStationSetup';
 import CompanySetup from '../components/MasterSetup/CompanySetup/CompanySetup';
+import Dashboard from '../Dashboard/Dashboard';
 
 
 
@@ -22,7 +22,7 @@ export const router = createBrowserRouter([
       {
         path: '/',
         index: true,
-        Component: Home,
+        Component: Dashboard,
       },
       {
         path: '/cases/add',
