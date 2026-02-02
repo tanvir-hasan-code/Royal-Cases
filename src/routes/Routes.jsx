@@ -10,6 +10,7 @@ import CaseTypeSetup from '../components/MasterSetup/CaseTypeSetup/CaseTypeSetup
 import PoliceStationSetup from '../components/MasterSetup/PoliceStationSetup/PoliceStationSetup';
 import CompanySetup from '../components/MasterSetup/CompanySetup/CompanySetup';
 import Dashboard from '../Dashboard/Dashboard';
+import DailyNotes from '../components/DailyNotes/DailyNotes';
 
 
 
@@ -23,6 +24,10 @@ export const router = createBrowserRouter([
         path: '/',
         index: true,
         Component: Dashboard,
+      },
+      {
+        path: '/notes',
+        Component: DailyNotes
       },
       {
         path: '/cases/add',
