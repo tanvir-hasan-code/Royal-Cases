@@ -11,6 +11,7 @@ import {
 } from "react-icons/fa";
 import useAxiosSecure from "../Hooks/useAxiosSecure";
 import usePageTitle from "../Hooks/useTitle";
+import { useNavigate } from "react-router-dom";
 
 const dashboardCards = [
   {
@@ -64,9 +65,10 @@ const dashboardCards = [
 ];
 
 const Dashboard = () => {
-	usePageTitle("Dashboard")
+  usePageTitle("Dashboard");
   const [counts, setCounts] = useState({});
   const axiosSecure = useAxiosSecure();
+  const navigate = useNavigate();
 
   const fetchCount = async (card) => {
     try {
@@ -78,16 +80,30 @@ const Dashboard = () => {
   };
 
   useEffect(() => {
-   
     dashboardCards.forEach((card) => fetchCount(card));
 
-    
     const intervals = dashboardCards.map((card) =>
-      setInterval(() => fetchCount(card), 10000)
+      setInterval(() => fetchCount(card), 10000),
     );
 
     return () => intervals.forEach((id) => clearInterval(id));
   }, []);
+  const handleCardClick = (title) => {
+    const routes = {
+      "All Cases": "/cases/all",
+      "Running Cases": "/cases/running",
+      "Today's Cases": "/cases/today",
+      "Tomorrow's Cases": "/cases/tomorrow",
+      "Complete Cases": "/cases/completed",
+      "All Notes": "/notes",
+      "Today's Notes": "/notes",
+      "Not Updated Cases": "/cases/pending",
+    };
+
+    if (routes[title]) {
+      navigate(routes[title]);
+    }
+  };
 
   return (
     <div className="p-6 bg-gray-100 min-h-screen">
@@ -101,6 +117,7 @@ const Dashboard = () => {
         {dashboardCards.map((card, idx) => (
           <div
             key={idx}
+            onClick={() => handleCardClick(card.title)}
             className={`flex items-center p-6 rounded-xl shadow-lg cursor-pointer transform hover:scale-105 transition duration-200 ${card.bg}`}
           >
             <div className="mr-4">{card.icon}</div>

@@ -1,19 +1,24 @@
 import { useState } from "react";
 import { NavLink } from "react-router-dom";
-import { 
-  FaBars, 
-  FaTimes, 
-  FaHome, 
-  FaBookOpen, 
-  FaGavel, 
-  FaPlusCircle, 
-  FaBalanceScale, 
-  FaPlayCircle, 
+import {
+  FaBars,
+  FaTimes,
+  FaHome,
+  FaBookOpen,
+  FaGavel,
+  FaPlusCircle,
+  FaBalanceScale,
+  FaPlayCircle,
   FaCogs,
   FaBuilding,
   FaLandmark,
   FaFileAlt,
-  FaUserTie
+  FaUserTie,
+  FaUsers,
+  FaCalendarDay,
+  FaCalendarAlt,
+  FaExclamationTriangle,
+  FaCheckCircle
 } from "react-icons/fa";
 
 const Sidebar = () => {
@@ -29,6 +34,24 @@ const Sidebar = () => {
         { icon: <FaPlusCircle />, text: "Add New Case", to: "/cases/add" },
         { icon: <FaBalanceScale />, text: "All Cases", to: "/cases/all" },
         { icon: <FaGavel />, text: "Running Cases", to: "/cases/running" },
+        { icon: <FaCalendarDay />, text: "Today's Cases", to: "/cases/today" },
+        {
+          icon: <FaCalendarAlt />,
+          text: "Tomorrow's Cases",
+          to: "/cases/tomorrow",
+        },
+
+        // 🔹 Status based
+        {
+          icon: <FaExclamationTriangle />,
+          text: "Not Updated Cases",
+          to: "/cases/pending",
+        },
+        {
+          icon: <FaCheckCircle />,
+          text: "Completed Cases",
+          to: "/cases/completed",
+        },
       ],
     },
     {
@@ -36,10 +59,23 @@ const Sidebar = () => {
       text: "Master Setup",
       subMenu: [
         { icon: <FaLandmark />, text: "Court Setup", to: "/setup/court" },
-        { icon: <FaFileAlt />, text: "Case Type Setup", to: "/setup/case-type" },
-        { icon: <FaUserTie />, text: "Police Station Setup", to: "/setup/police-station" },
+        {
+          icon: <FaFileAlt />,
+          text: "Case Type Setup",
+          to: "/setup/case-type",
+        },
+        {
+          icon: <FaUserTie />,
+          text: "Police Station Setup",
+          to: "/setup/police-station",
+        },
         { icon: <FaBuilding />, text: "Company Setup", to: "/setup/company" },
       ],
+    },
+    {
+      icon: <FaUsers />,
+      text: "User Management",
+      to: "/user-management",
     },
   ];
 
@@ -74,9 +110,7 @@ const Sidebar = () => {
             <li key={idx} className="group relative">
               {item.subMenu ? (
                 <details className="group">
-                  <summary
-                    className="flex items-center gap-3 p-2 rounded-md hover:bg-gray-700 cursor-pointer"
-                  >
+                  <summary className="flex items-center gap-3 p-2 rounded-md hover:bg-gray-700 cursor-pointer">
                     <span className="text-xl">{item.icon}</span>
                     <span>{item.text}</span>
                   </summary>

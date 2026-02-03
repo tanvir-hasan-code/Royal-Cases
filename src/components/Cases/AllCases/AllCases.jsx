@@ -11,10 +11,10 @@ import html2canvas from "html2canvas";
 import autoTable from "jspdf-autotable";
 import usePageTitle from "../../../Hooks/useTitle";
 
-const LIMIT = 8;
+const LIMIT = 10;
 
 const AllCases = () => {
-  usePageTitle("All Cases")
+  usePageTitle("All Cases");
   const axiosSecure = useAxiosSecure();
   const [searchParams, setSearchParams] = useSearchParams();
 
@@ -29,7 +29,6 @@ const AllCases = () => {
   const [editCase, setEditCase] = useState(null);
   const [viewCase, setViewCase] = useState(null);
 
-  
   const { data, refetch, isLoading } = useQuery({
     queryKey: ["cases", page, search],
     queryFn: async () => {
@@ -79,7 +78,6 @@ const AllCases = () => {
       .getElementById("cases-table")
       .cloneNode(true);
 
-  
     printContents.querySelectorAll(".action-col").forEach((el) => el.remove());
 
     const printWindow = window.open("", "_blank", "width=900,height=650");
@@ -118,106 +116,126 @@ const AllCases = () => {
     printWindow.print();
   };
 
-const handleSavePDF = () => {
-  if (!data?.cases || data.cases.length === 0) {
-    toast.error("No data available!");
-    return;
-  }
+  const handleSavePDF = () => {
+    if (!data?.cases || data.cases.length === 0) {
+      toast.error("No data available!");
+      return;
+    }
 
+    const doc = new jsPDF("l", "mm", "a4");
+    const loadingToast = toast.loading("Generating Print-Style PDF...");
 
-  const doc = new jsPDF("l", "mm", "a4"); 
-  const loadingToast = toast.loading("Generating Print-Style PDF...");
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(26);
+    doc.setTextColor(79, 70, 229);
+    doc.text("Royal Case", 148, 18, { align: "center" });
 
-  
-  doc.setFont("helvetica", "bold");
-  doc.setFontSize(26);
-  doc.setTextColor(79, 70, 229); 
-  doc.text("Royal Case", 148, 18, { align: "center" });
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(10);
+    doc.setTextColor(100);
+    doc.text("123 Legal Street, Dhaka, Bangladesh", 148, 24, {
+      align: "center",
+    });
+    doc.text("Phone: +880 1234 567890 | Email: info@royalcase.com", 148, 29, {
+      align: "center",
+    });
 
-  doc.setFont("helvetica", "normal");
-  doc.setFontSize(10);
-  doc.setTextColor(100);
-  doc.text("123 Legal Street, Dhaka, Bangladesh", 148, 24, { align: "center" });
-  doc.text("Phone: +880 1234 567890 | Email: info@royalcase.com", 148, 29, { align: "center" });
-  
-  doc.setFontSize(14);
-  doc.setTextColor(31, 41, 55);
-  doc.setFont("helvetica", "bold");
-  doc.text(`RUNNING CASES REPORT - PAGE ${page}`, 148, 38, { align: "center" });
-  
-  doc.setDrawColor(79, 70, 229);
-  doc.setLineWidth(0.5);
-  doc.line(14, 42, 283, 42);
+    doc.setFontSize(14);
+    doc.setTextColor(31, 41, 55);
+    doc.setFont("helvetica", "bold");
+    doc.text(`RUNNING CASES REPORT - PAGE ${page}`, 148, 38, {
+      align: "center",
+    });
 
-  const tableColumn = [
-    "File No",
-    "Case No",
-    "Company",
-    "First Party",
-    "Second Party",
-    "Court",
-    "Fixed For",
-    "Status",
-    "Law & Section"
-  ];
+    doc.setDrawColor(79, 70, 229);
+    doc.setLineWidth(0.5);
+    doc.line(14, 42, 283, 42);
 
-  const tableRows = data.cases.map((item) => [
-    item.fileNo || "-",
-    item.caseNo || "-",
-    item.company || "-",
-    item.firstParty || "-",
-    item.secondParty || "-",
-    item.court || "-",
-    item.fixedFor || "-",
-    item.status || "-",
-    item.lawSection || "-"
-  ]);
+    const tableColumn = [
+      "File No",
+      "Case No",
+      "Company",
+      "First Party",
+      "Second Party",
+      "Court",
+      "Fixed For",
+      "Status",
+      "Law & Section",
+    ];
 
+    const tableRows = data.cases.map((item) => [
+      item.fileNo || "-",
+      item.caseNo || "-",
+      item.company || "-",
+      item.firstParty || "-",
+      item.secondParty || "-",
+      item.court || "-",
+      item.fixedFor || "-",
+      item.status || "-",
+      item.lawSection || "-",
+    ]);
 
-  autoTable(doc, {
-    startY: 48,
-    head: [tableColumn],
-    body: tableRows,
-    theme: "grid", 
-    styles: { 
-      fontSize: 8.5, 
-      cellPadding: 3, 
-      valign: "middle",
-      font: "helvetica" 
-    },
-    headStyles: { 
-      fillColor: [79, 70, 229], 
-      textColor: [255, 255, 255], 
-      fontStyle: "bold",
-      halign: "left",
-      lineColor: [255, 255, 255],
-      lineWidth: 0.1
-    },
-    bodyStyles: {
-      lineColor: [229, 231, 235], 
-      lineWidth: 0.1
-    },
-    alternateRowStyles: {
-      fillColor: [249, 250, 251] 
-    },
-    columnStyles: {
-      8: { cellWidth: 35 }, 
-    },
-    margin: { left: 14, right: 14 },
-  });
+    autoTable(doc, {
+      startY: 48,
+      head: [tableColumn],
+      body: tableRows,
+      theme: "grid",
+      styles: {
+        fontSize: 8.5,
+        cellPadding: 3,
+        valign: "middle",
+        font: "helvetica",
+      },
+      headStyles: {
+        fillColor: [79, 70, 229],
+        textColor: [255, 255, 255],
+        fontStyle: "bold",
+        halign: "left",
+        lineColor: [255, 255, 255],
+        lineWidth: 0.1,
+      },
+      bodyStyles: {
+        lineColor: [229, 231, 235],
+        lineWidth: 0.1,
+      },
+      alternateRowStyles: {
+        fillColor: [249, 250, 251],
+      },
+      columnStyles: {
+        8: { cellWidth: 35 },
+      },
+      margin: { left: 14, right: 14 },
+    });
 
- 
-  const pageHeight = doc.internal.pageSize.height;
-  doc.setFontSize(10);
-  doc.setTextColor(0);
-  doc.text("__________________________", 14, pageHeight - 15);
-  doc.text("Prepared By", 14, pageHeight - 10);
-  
-  doc.text("__________________________", 235, pageHeight - 15);
-  doc.text("Authorized Signature", 235, pageHeight - 10);
-  doc.save(`RoyalCase_Print_Style_Page_${page}.pdf`);
-  toast.success("Print-Style PDF Downloaded!", { id: loadingToast });
-};
+    const pageHeight = doc.internal.pageSize.height;
+    doc.setFontSize(10);
+    doc.setTextColor(0);
+    doc.text("__________________________", 14, pageHeight - 15);
+    doc.text("Prepared By", 14, pageHeight - 10);
+
+    doc.text("__________________________", 235, pageHeight - 15);
+    doc.text("Authorized Signature", 235, pageHeight - 10);
+    doc.save(`RoyalCase_Print_Style_Page_${page}.pdf`);
+    toast.success("Print-Style PDF Downloaded!", { id: loadingToast });
+  };
+  // Pagination
+
+  const getPages = (current, total) => {
+    if (total <= 5) {
+      return [...Array(total).keys()].map((n) => n + 1);
+    }
+
+    if (current <= 3) {
+      return [1, 2, 3, "...", total];
+    }
+
+    if (current >= total - 2) {
+      return [1, "...", total - 2, total - 1, total];
+    }
+
+    return [1, "...", current - 1, current, current + 1, "...", total];
+  };
+
   return (
     <div className="p-4">
       <h2 className="text-2xl font-bold mb-4">All Cases</h2>
@@ -266,29 +284,45 @@ const handleSavePDF = () => {
         </>
       )}
       {/* Pagination */}
-      <div className="flex justify-center gap-2 mt-6 items-center">
+      <div className="mt-6 flex flex-col sm:flex-row justify-center items-center gap-3">
+        {/* Prev Button */}
         <button
-          className="btn btn-sm btn-outline"
+          className="btn btn-xs sm:btn-sm btn-outline"
           onClick={() => setPage((p) => Math.max(p - 1, 1))}
           disabled={page === 1}
         >
           Prev
         </button>
 
-        {[...Array(totalPages).keys()].map((n) => (
-          <button
-            key={n}
-            onClick={() => setPage(n + 1)}
-            className={`btn btn-sm ${
-              page === n + 1 ? "btn-primary" : "btn-outline"
-            }`}
-          >
-            {n + 1}
-          </button>
-        ))}
+        {/* Page Numbers */}
+        <div className="flex flex-wrap justify-center items-center gap-1 sm:gap-2 max-w-full">
+          {getPages(page, totalPages).map((n, i) =>
+            n === "..." ? (
+              <span
+                key={`dots-${i}`}
+                className="px-2 sm:px-3 text-gray-500 select-none"
+              >
+                …
+              </span>
+            ) : (
+              <button
+                key={n}
+                onClick={() => setPage(n)}
+                className={`
+            btn btn-xs sm:btn-sm
+            ${page === n ? "btn-primary" : "btn-outline"}
+            min-w-[28px] sm:min-w-[40px]
+          `}
+              >
+                {n}
+              </button>
+            ),
+          )}
+        </div>
 
+        {/* Next Button */}
         <button
-          className="btn btn-sm btn-outline"
+          className="btn btn-xs sm:btn-sm btn-outline"
           onClick={() => setPage((p) => Math.min(p + 1, totalPages))}
           disabled={page === totalPages || totalPages === 0}
         >

@@ -13,8 +13,8 @@ import usePageTitle from "../../../Hooks/useTitle";
 
 const LIMIT = 10;
 
-const RunningCases = () => {
-  usePageTitle("Running Cases");
+const CompleteCases = () => {
+  usePageTitle("Complete Cases");
   const axiosSecure = useAxiosSecure();
   const [searchParams, setSearchParams] = useSearchParams();
 
@@ -30,10 +30,10 @@ const RunningCases = () => {
   const [viewCase, setViewCase] = useState(null);
 
   const { data, refetch, isLoading } = useQuery({
-    queryKey: ["running-cases", page, search],
+    queryKey: ["complete-cases", page, search],
     queryFn: async () => {
       const res = await axiosSecure.get(
-        `/running-cases?page=${page}&limit=${LIMIT}&search=${search}`,
+        `/complete-cases?page=${page}&limit=${LIMIT}&search=${search}`,
       );
       return res.data;
     },
@@ -81,32 +81,32 @@ const RunningCases = () => {
     const printWindow = window.open("", "_blank", "width=900,height=650");
 
     printWindow.document.write(`
-    <html>
-      <head>
-        <title>Royal Case - Cases Report</title>
-        <style>
-          body { font-family: Arial, sans-serif; padding: 20px; }
-          .header { text-align: center; margin-bottom: 20px; }
-          .header h1 { margin: 0; font-size: 28px; font-weight: bold; }
-          .header p { margin: 2px 0; font-size: 14px; color: #555; }
-          .report-title { margin-top: 10px; font-size: 18px; font-weight: 600; }
-          table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-          th, td { border: 1px solid #ccc; padding: 8px; text-align: left; font-size: 12px; }
-          th { background-color: #f3f3f3; }
-          tr:nth-child(even) { background-color: #fafafa; }
-        </style>
-      </head>
-      <body>
-        <div class="header">
-          <h1>Royal Case</h1>
-          <p>123 Legal Street, Dhaka, Bangladesh</p>
-          <p>Phone: +880 1234 567890 | Email: info@royalcase.com</p>
-          <p>Website: www.royalcase.com</p>
-          <div class="report-title">Cases Report - Page ${page}</div>
-        </div>
-        ${printContents.innerHTML}
-      </body>
-    </html>
+	<html>
+	  <head>
+		<title>Royal Case - Cases Report</title>
+		<style>
+		  body { font-family: Arial, sans-serif; padding: 20px; }
+		  .header { text-align: center; margin-bottom: 20px; }
+		  .header h1 { margin: 0; font-size: 28px; font-weight: bold; }
+		  .header p { margin: 2px 0; font-size: 14px; color: #555; }
+		  .report-title { margin-top: 10px; font-size: 18px; font-weight: 600; }
+		  table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+		  th, td { border: 1px solid #ccc; padding: 8px; text-align: left; font-size: 12px; }
+		  th { background-color: #f3f3f3; }
+		  tr:nth-child(even) { background-color: #fafafa; }
+		</style>
+	  </head>
+	  <body>
+		<div class="header">
+		  <h1>Royal Case</h1>
+		  <p>123 Legal Street, Dhaka, Bangladesh</p>
+		  <p>Phone: +880 1234 567890 | Email: info@royalcase.com</p>
+		  <p>Website: www.royalcase.com</p>
+		  <div class="report-title">Cases Report - Page ${page}</div>
+		</div>
+		${printContents.innerHTML}
+	  </body>
+	</html>
   `);
 
     printWindow.document.close();
@@ -140,7 +140,7 @@ const RunningCases = () => {
     doc.setFontSize(14);
     doc.setTextColor(31, 41, 55);
     doc.setFont("helvetica", "bold");
-    doc.text(`RUNNING CASES REPORT - PAGE ${page}`, 148, 38, {
+    doc.text(`COMPLETE CASES REPORT - PAGE ${page}`, 148, 38, {
       align: "center",
     });
 
@@ -215,7 +215,8 @@ const RunningCases = () => {
     doc.save(`RoyalCase_Print_Style_Page_${page}.pdf`);
     toast.success("Print-Style PDF Downloaded!", { id: loadingToast });
   };
-  // Pagination
+	
+	  // Pagination
 
   const getPages = (current, total) => {
     if (total <= 5) {
@@ -235,7 +236,7 @@ const RunningCases = () => {
 
   return (
     <div className="p-4 ">
-      <h2 className="text-2xl font-bold mb-4">Running Cases</h2>
+      <h2 className="text-2xl font-bold mb-4">Complete Cases</h2>
 
       {/* Search & Buttons */}
       <div className="flex flex-col lg:flex-row lg:justify-end gap-2 mb-2  top-0  z-10 p-2 border-b border-gray-200">
@@ -268,7 +269,7 @@ const RunningCases = () => {
       {isLoading ? (
         <div className="flex flex-col justify-center items-center h-64">
           <span className="loading loading-spinner loading-lg text-primary"></span>
-          <p className="mt-2 text-gray-500">Loading running cases...</p>
+          <p className="mt-2 text-gray-500">Loading Complete Cases...</p>
         </div>
       ) : (
         <>
@@ -474,7 +475,7 @@ const RunningCases = () => {
                       className={`inline-block w-fit mt-1 px-3 py-0.5 text-[11px] font-bold rounded-full ${
                         viewCase.status === "Pending"
                           ? "bg-yellow-100 text-yellow-700 border border-yellow-200"
-                          : viewCase.status === "Running"
+                          : viewCase.status === "Complete"
                             ? "bg-blue-100 text-blue-700 border border-blue-200"
                             : "bg-green-100 text-green-700 border border-green-200"
                       }`}
@@ -533,57 +534,57 @@ const RunningCases = () => {
                         "width=900,height=650",
                       );
                       printWindow.document.write(`
-                <html>
+				<html>
   <head>
-    <title>Royal Case - Case Report</title>
-    <style>
-      body { font-family: Arial, sans-serif; padding: 20px; color: #222; }
-      .header { text-align: center; margin-bottom: 20px; }
-      .header h1 { margin: 0; font-size: 28px; font-weight: bold; }
-      .header p { margin: 2px 0; font-size: 14px; color: #555; }
-      .report-title { margin-top: 10px; font-size: 18px; font-weight: 600; }
-      
-      table { width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 14px; }
-      th, td { border: 1px solid #ccc; padding: 8px; text-align: left; vertical-align: top; }
-      th { background-color: #f3f3f3; font-weight: 600; }
-      tr:nth-child(even) { background-color: #fafafa; }
-      
-      .full-span { width: 100%; }
-    </style>
+	<title>Royal Case - Case Report</title>
+	<style>
+	  body { font-family: Arial, sans-serif; padding: 20px; color: #222; }
+	  .header { text-align: center; margin-bottom: 20px; }
+	  .header h1 { margin: 0; font-size: 28px; font-weight: bold; }
+	  .header p { margin: 2px 0; font-size: 14px; color: #555; }
+	  .report-title { margin-top: 10px; font-size: 18px; font-weight: 600; }
+	  
+	  table { width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 14px; }
+	  th, td { border: 1px solid #ccc; padding: 8px; text-align: left; vertical-align: top; }
+	  th { background-color: #f3f3f3; font-weight: 600; }
+	  tr:nth-child(even) { background-color: #fafafa; }
+	  
+	  .full-span { width: 100%; }
+	</style>
   </head>
   <body>
-    <div class="header">
-      <h1>Royal Case</h1>
-      <p>123 Legal Street, Dhaka, Bangladesh</p>
-      <p>Phone: +880 1234 567890 | Email: info@royalcase.com</p>
-      <p>Website: www.royalcase.com</p>
-      <div class="report-title">Case Report - Page 1</div>
-    </div>
+	<div class="header">
+	  <h1>Royal Case</h1>
+	  <p>123 Legal Street, Dhaka, Bangladesh</p>
+	  <p>Phone: +880 1234 567890 | Email: info@royalcase.com</p>
+	  <p>Website: www.royalcase.com</p>
+	  <div class="report-title">Case Report - Page 1</div>
+	</div>
 
-    <table>
-      <tbody>
-        <tr><th>File No</th><td>${viewCase.fileNo || "-"}</td></tr>
-        <tr><th>Case No</th><td>${viewCase.caseNo || "-"}</td></tr>
-        <tr><th>Date</th><td>${viewCase.date ? new Date(viewCase.date).toLocaleDateString() : "-"}</td></tr>
-        <tr><th>Company</th><td>${viewCase.company || "-"}</td></tr>
-        <tr><th>First Party</th><td>${viewCase.firstParty || "-"}</td></tr>
-        <tr><th>Second Party</th><td>${viewCase.secondParty || "-"}</td></tr>
-        <tr><th>Appointed By</th><td>${viewCase.appointedBy || "-"}</td></tr>
-        <tr><th>Case Type</th><td>${viewCase.caseType || "-"}</td></tr>
-        <tr><th>Court</th><td>${viewCase.court || "-"}</td></tr>
-        <tr><th>Police Station</th><td>${viewCase.policeStation || "-"}</td></tr>
-        <tr><th>Fixed For</th><td>${viewCase.fixedFor || "-"}</td></tr>
-        <tr><th>Mobile No</th><td>${viewCase.mobileNo || "-"}</td></tr>
-        <tr><th>Status</th><td>${viewCase.status || "-"}</td></tr>
-        <tr><th>Created At</th><td>${viewCase.createdAt ? new Date(viewCase.createdAt).toLocaleString() : "-"}</td></tr>
-        <tr><th>Law & Section</th><td>${viewCase.lawSection || "-"}</td></tr>
-        <tr><th>Comments</th><td>${viewCase.comments || "-"}</td></tr>
-      </tbody>
-    </table>
+	<table>
+	  <tbody>
+		<tr><th>File No</th><td>${viewCase.fileNo || "-"}</td></tr>
+		<tr><th>Case No</th><td>${viewCase.caseNo || "-"}</td></tr>
+		<tr><th>Date</th><td>${viewCase.date ? new Date(viewCase.date).toLocaleDateString() : "-"}</td></tr>
+		<tr><th>Company</th><td>${viewCase.company || "-"}</td></tr>
+		<tr><th>First Party</th><td>${viewCase.firstParty || "-"}</td></tr>
+		<tr><th>Second Party</th><td>${viewCase.secondParty || "-"}</td></tr>
+		<tr><th>Appointed By</th><td>${viewCase.appointedBy || "-"}</td></tr>
+		<tr><th>Case Type</th><td>${viewCase.caseType || "-"}</td></tr>
+		<tr><th>Court</th><td>${viewCase.court || "-"}</td></tr>
+		<tr><th>Police Station</th><td>${viewCase.policeStation || "-"}</td></tr>
+		<tr><th>Fixed For</th><td>${viewCase.fixedFor || "-"}</td></tr>
+		<tr><th>Mobile No</th><td>${viewCase.mobileNo || "-"}</td></tr>
+		<tr><th>Status</th><td>${viewCase.status || "-"}</td></tr>
+		<tr><th>Created At</th><td>${viewCase.createdAt ? new Date(viewCase.createdAt).toLocaleString() : "-"}</td></tr>
+		<tr><th>Law & Section</th><td>${viewCase.lawSection || "-"}</td></tr>
+		<tr><th>Comments</th><td>${viewCase.comments || "-"}</td></tr>
+	  </tbody>
+	</table>
   </body>
 </html>
 
-              `);
+			  `);
                       printWindow.document.close();
                       printWindow.focus();
                       printWindow.print();
@@ -601,4 +602,4 @@ const RunningCases = () => {
   );
 };
 
-export default RunningCases;
+export default CompleteCases;
