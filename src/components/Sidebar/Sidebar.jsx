@@ -18,7 +18,7 @@ import {
   FaCalendarDay,
   FaCalendarAlt,
   FaExclamationTriangle,
-  FaCheckCircle
+  FaCheckCircle,
 } from "react-icons/fa";
 
 const Sidebar = () => {
@@ -91,21 +91,23 @@ const Sidebar = () => {
       {/* SIDEBAR */}
       <div
         className={`
-          fixed top-0 left-0 h-full bg-gray-900 text-white
-          transform ${open ? "translate-x-0" : "-translate-x-full"} 
-          transition-transform duration-300 ease-in-out
-          lg:translate-x-0 lg:static lg:w-64
-          z-50
-        `}
+    fixed top-0 left-0 h-full bg-gray-900 text-white
+    transform ${open ? "translate-x-0" : "-translate-x-full"} 
+    transition-transform duration-300 ease-in-out
+    lg:translate-x-0 lg:static lg:w-64
+    z-50
+    flex flex-col
+    overflow-hidden
+  `}
       >
         {/* USER INFO - Only for desktop */}
-        <div className="p-4 border-b border-gray-600 hidden lg:block">
+        <div className="p-4 border-b border-gray-600 hidden lg:block flex-shrink-0">
           <h2 className="font-semibold">Adv Md Kamal Uddin</h2>
           <p className="text-sm text-green-400">● Online</p>
         </div>
 
         {/* MENU */}
-        <ul className="menu p-4 gap-1 flex flex-col">
+        <ul className="menu p-4 gap-1 flex flex-col flex-nowrap flex-1 overflow-y-auto overflow-x-hidden w-full">
           {menuItems.map((item, idx) => (
             <li key={idx} className="group relative">
               {item.subMenu ? (
