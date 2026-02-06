@@ -17,6 +17,7 @@ const AllCases = () => {
   usePageTitle("All Cases");
   const axiosSecure = useAxiosSecure();
   const [searchParams, setSearchParams] = useSearchParams();
+  const [cases, setCases] = useState([]);
 
   const initialPage = useMemo(
     () => parseInt(searchParams.get("page")) || 1,
@@ -28,17 +29,25 @@ const AllCases = () => {
   const [search, setSearch] = useState(initialSearch);
   const [editCase, setEditCase] = useState(null);
   const [viewCase, setViewCase] = useState(null);
-
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
+  const [selectedCompany, setSelectedCompany] = useState("");
   const { data, refetch, isLoading } = useQuery({
-    queryKey: ["cases", page, search],
+    queryKey: ["cases", page, search, startDate, endDate, selectedCompany],
+
     queryFn: async () => {
       const res = await axiosSecure.get(
-        `/cases?page=${page}&limit=${LIMIT}&search=${search}`,
+        `/cases?page=${page}&limit=${LIMIT}&search=${search}&startDate=${startDate}&endDate=${endDate}&company=${selectedCompany}`,
       );
       return res.data;
     },
+
     keepPreviousData: true,
   });
+
+  useEffect(() => {
+    if (data?.cases) setCases(data.cases);
+  }, [data?.cases]);
 
   const totalPages = data?.totalPages || 0;
 
@@ -63,6 +72,12 @@ const AllCases = () => {
     }
   };
 
+  const handleAddDateUpdate = (updatedCase) => {
+    setCases((prev) =>
+      prev.map((c) => (c._id === updatedCase._id ? updatedCase : c)),
+    );
+  };
+
   const handleDelete = async (id) => {
     try {
       await axiosSecure.delete(`/cases/${id}`);
@@ -83,33 +98,33 @@ const AllCases = () => {
     const printWindow = window.open("", "_blank", "width=900,height=650");
 
     printWindow.document.write(`
-    <html>
-      <head>
-        <title>Royal Case - Cases Report</title>
-        <style>
-          body { font-family: Arial, sans-serif; padding: 20px; }
-          .header { text-align: center; margin-bottom: 20px; }
-          .header h1 { margin: 0; font-size: 28px; font-weight: bold; }
-          .header p { margin: 2px 0; font-size: 14px; color: #555; }
-          .report-title { margin-top: 10px; font-size: 18px; font-weight: 600; }
-          table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-          th, td { border: 1px solid #ccc; padding: 8px; text-align: left; font-size: 12px; }
-          th { background-color: #f3f3f3; }
-          tr:nth-child(even) { background-color: #fafafa; }
-        </style>
-      </head>
-      <body>
-        <div class="header">
-          <h1>Royal Case</h1>
-          <p>123 Legal Street, Dhaka, Bangladesh</p>
-          <p>Phone: +880 1234 567890 | Email: info@royalcase.com</p>
-          <p>Website: www.royalcase.com</p>
-          <div class="report-title">Cases Report - Page ${page}</div>
-        </div>
-        ${printContents.innerHTML}
-      </body>
-    </html>
-  `);
+      <html>
+        <head>
+          <title>Royal Case - Cases Report</title>
+          <style>
+            body { font-family: Arial, sans-serif; padding: 20px; }
+            .header { text-align: center; margin-bottom: 20px; }
+            .header h1 { margin: 0; font-size: 28px; font-weight: bold; }
+            .header p { margin: 2px 0; font-size: 14px; color: #555; }
+            .report-title { margin-top: 10px; font-size: 18px; font-weight: 600; }
+            table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+            th, td { border: 1px solid #ccc; padding: 8px; text-align: left; font-size: 12px; }
+            th { background-color: #f3f3f3; }
+            tr:nth-child(even) { background-color: #fafafa; }
+          </style>
+        </head>
+        <body>
+          <div class="header">
+            <h1>Royal Case</h1>
+            <p>123 Legal Street, Dhaka, Bangladesh</p>
+            <p>Phone: +880 1234 567890 | Email: info@royalcase.com</p>
+            <p>Website: www.royalcase.com</p>
+            <div class="report-title">Cases Report - Page ${page}</div>
+          </div>
+          ${printContents.innerHTML}
+        </body>
+      </html>
+    `);
 
     printWindow.document.close();
     printWindow.focus();
@@ -235,14 +250,60 @@ const AllCases = () => {
 
     return [1, "...", current - 1, current, current + 1, "...", total];
   };
+  const { data: companies = [] } = useQuery({
+    queryKey: ["companies"],
+    queryFn: async () => {
+      const res = await axiosSecure.get("/companies");
+      return res.data;
+    },
+  });
 
   return (
     <div className="p-4">
       <h2 className="text-2xl font-bold mb-4">All Cases</h2>
       <div className="flex flex-col lg:flex-row lg:justify-end gap-2 mb-2  top-0  z-10 p-2 border-b border-gray-200">
+        {/* Company Dropdown */}
+        <select
+          name="company"
+          value={selectedCompany}
+          onChange={(e) => {
+            setSelectedCompany(e.target.value);
+            setPage(1);
+          }}
+          className="select w-fit select-bordered"
+        >
+          <option value="">--Select Company/Group--</option>
+          {companies.map((company) => (
+            <option key={company._id} value={company.name}>
+              {company.name}
+            </option>
+          ))}
+        </select>
+
+        {/* Date Range */}
+        <input
+          type="date"
+          className="input input-bordered w-full lg:w-32"
+          value={startDate}
+          onChange={(e) => {
+            setStartDate(e.target.value);
+            setPage(1);
+          }}
+        />
+        <input
+          type="date"
+          className="input input-bordered w-full lg:w-32"
+          value={endDate}
+          onChange={(e) => {
+            setEndDate(e.target.value);
+            setPage(1);
+          }}
+        />
+
+        {/* Text Search */}
         <input
           type="text"
-          placeholder="Search Case No..."
+          placeholder="Search by CaseNo, Police Station, Comments..."
           className="input input-bordered w-full lg:w-64 focus:outline-primary"
           value={search}
           onChange={(e) => {
@@ -250,6 +311,7 @@ const AllCases = () => {
             setPage(1);
           }}
         />
+
         <div className="flex gap-2">
           <button
             className="btn btn-sm btn-primary flex items-center gap-1"
@@ -275,7 +337,8 @@ const AllCases = () => {
         <>
           <div className="overflow-x-auto w-full">
             <CasesTable
-              cases={data?.cases || []}
+              cases={cases || []}
+              onAddDate={handleAddDateUpdate}
               onEdit={setEditCase}
               onDelete={handleDelete}
               onView={setViewCase}
@@ -309,10 +372,10 @@ const AllCases = () => {
                 key={n}
                 onClick={() => setPage(n)}
                 className={`
-            btn btn-xs sm:btn-sm
-            ${page === n ? "btn-primary" : "btn-outline"}
-            min-w-[28px] sm:min-w-[40px]
-          `}
+              btn btn-xs sm:btn-sm
+              ${page === n ? "btn-primary" : "btn-outline"}
+              min-w-[28px] sm:min-w-[40px]
+            `}
               >
                 {n}
               </button>
@@ -379,8 +442,10 @@ const AllCases = () => {
                     Date
                   </span>
                   <span className="text-gray-800 font-medium">
-                    {viewCase.date
-                      ? new Date(viewCase.date).toLocaleDateString()
+                    {viewCase.date && viewCase.date.length > 0
+                      ? new Date(
+                          viewCase.date[viewCase.date.length - 1],
+                        ).toLocaleDateString()
                       : "-"}
                   </span>
                 </div>
@@ -522,6 +587,75 @@ const AllCases = () => {
                 >
                   Close
                 </button>
+                <div className="flex ml-3 justify-end mb-4">
+                  <button
+                    className="btn btn-error shadow-md"
+                    onClick={() => {
+                      const printWindow = window.open(
+                        "",
+                        "_blank",
+                        "width=900,height=650",
+                      );
+                      printWindow.document.write(`
+        <html>
+  <head>
+  <title>Royal Case - Case Report</title>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 20px; color: #222; }
+    .header { text-align: center; margin-bottom: 20px; }
+    .header h1 { margin: 0; font-size: 28px; font-weight: bold; }
+    .header p { margin: 2px 0; font-size: 14px; color: #555; }
+    .report-title { margin-top: 10px; font-size: 18px; font-weight: 600; }
+    
+    table { width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 14px; }
+    th, td { border: 1px solid #ccc; padding: 8px; text-align: left; vertical-align: top; }
+    th { background-color: #f3f3f3; font-weight: 600; }
+    tr:nth-child(even) { background-color: #fafafa; }
+    
+    .full-span { width: 100%; }
+  </style>
+  </head>
+  <body>
+  <div class="header">
+    <h1>Royal Case</h1>
+    <p>123 Legal Street, Dhaka, Bangladesh</p>
+    <p>Phone: +880 1234 567890 | Email: info@royalcase.com</p>
+    <p>Website: www.royalcase.com</p>
+    <div class="report-title">Case Report - Page 1</div>
+  </div>
+
+  <table>
+    <tbody>
+    <tr><th>File No</th><td>${viewCase.fileNo || "-"}</td></tr>
+    <tr><th>Case No</th><td>${viewCase.caseNo || "-"}</td></tr>
+    <tr><th>Date</th><td>${viewCase.date ? new Date(viewCase.date).toLocaleDateString() : "-"}</td></tr>
+    <tr><th>Company</th><td>${viewCase.company || "-"}</td></tr>
+    <tr><th>First Party</th><td>${viewCase.firstParty || "-"}</td></tr>
+    <tr><th>Second Party</th><td>${viewCase.secondParty || "-"}</td></tr>
+    <tr><th>Appointed By</th><td>${viewCase.appointedBy || "-"}</td></tr>
+    <tr><th>Case Type</th><td>${viewCase.caseType || "-"}</td></tr>
+    <tr><th>Court</th><td>${viewCase.court || "-"}</td></tr>
+    <tr><th>Police Station</th><td>${viewCase.policeStation || "-"}</td></tr>
+    <tr><th>Fixed For</th><td>${viewCase.fixedFor || "-"}</td></tr>
+    <tr><th>Mobile No</th><td>${viewCase.mobileNo || "-"}</td></tr>
+    <tr><th>Status</th><td>${viewCase.status || "-"}</td></tr>
+    <tr><th>Created At</th><td>${viewCase.createdAt ? new Date(viewCase.createdAt).toLocaleString() : "-"}</td></tr>
+    <tr><th>Law & Section</th><td>${viewCase.lawSection || "-"}</td></tr>
+    <tr><th>Comments</th><td>${viewCase.comments || "-"}</td></tr>
+    </tbody>
+  </table>
+  </body>
+</html>
+
+        `);
+                      printWindow.document.close();
+                      printWindow.focus();
+                      printWindow.print();
+                    }}
+                  >
+                    <FaPrint /> Print Case
+                  </button>
+                </div>
               </div>
             </div>
           </div>

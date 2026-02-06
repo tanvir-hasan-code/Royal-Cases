@@ -11,8 +11,10 @@ import {
 import toast from "react-hot-toast";
 import useAxiosSecure from "../../Hooks/useAxiosSecure";
 import Swal from "sweetalert2";
+import usePageTitle from "../../Hooks/useTitle";
 
 const DailyNotes = () => {
+	usePageTitle("Daily Notes")
   const [note, setNote] = useState("");
   const [notes, setNotes] = useState([]);
   const [loading, setLoading] = useState(false);

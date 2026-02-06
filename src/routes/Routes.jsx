@@ -18,69 +18,78 @@ import TodaysCases from "../components/Cases/TodaysCases/TodaysCases";
 import TomorrowCases from "../components/Cases/TomorrowCases/TomorrowCases";
 import CompleteCases from "../components/Cases/CompleteCases/CompleteCases";
 import PendingCases from "../components/Cases/PendingCases/PendingCases";
+import HeroSection from "../pages/Hero/HeroSection";
+import DetailsEdit from "../components/DetailsEdit/DetailsEdit";
 
 export const router = createBrowserRouter([
+  {
+    path: "/",
+    Component: HeroSection
+  },
   {
     path: "/",
     Component: Root,
     errorElement: <ErrorPage />,
     children: [
       {
-        path: "/",
-        index: true,
+        path: "dashboard",
         Component: Dashboard,
       },
       {
-        path: "/notes",
+        path: "notes",
         Component: DailyNotes,
       },
       {
-        path: "/cases/add",
+        path: "cases/add",
         Component: AddCases,
       },
       {
-        path: "/cases/all",
+        path: "cases/all",
         Component: AllCases,
       },
       {
-        path: "/cases/running",
+        path: "cases/running",
         Component: RunningCases,
       },
       {
-        path: "/cases/today",
+        path: "cases/today",
         Component: TodaysCases,
       },
       {
-        path: "/cases/tomorrow",
+        path: "cases/tomorrow",
         Component: TomorrowCases,
       },
       {
-        path: "/cases/completed",
+        path: "cases/completed",
         Component: CompleteCases,
       },
       {
-        path: "/cases/pending",
+        path: "cases/pending",
         Component: PendingCases,
       },
       {
-        path: "/setup/court",
+        path: "setup/court",
         Component: CourtSetup,
       },
       {
-        path: "/setup/case-type",
+        path: "setup/case-type",
         Component: CaseTypeSetup,
       },
       {
-        path: "/setup/police-station",
+        path: "setup/police-station",
         Component: PoliceStationSetup,
       },
       {
-        path: "/setup/company",
+        path: "setup/company",
         Component: CompanySetup,
       },
       {
-        path: "/user-management",
+        path: "user-management",
         Component: UserManagement,
+      },
+      {
+        path: "cases/edit/:id",
+        Component: DetailsEdit,
       },
     ],
   },
