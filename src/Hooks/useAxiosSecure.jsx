@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const axiosInstance = axios.create({
-  baseURL: "https://royalcases-server.vercel.app",
+  baseURL: "https://app-server-gold.vercel.app",
 });
 
 const useAxiosSecure = () => {

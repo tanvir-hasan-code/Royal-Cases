@@ -23,7 +23,7 @@ const CourtSetup = () => {
     queryKey: ["courts"],
     queryFn: async () => {
       const res = await axiosInstance.get("/courts");
-      return res.data;
+      return res.data.data;
     },
   });
 
@@ -116,7 +116,7 @@ const CourtSetup = () => {
               </tr>
             </thead>
             <tbody>
-              {courts.map((item, index) => (
+              {courts?.map((item, index) => (
                 <tr key={item._id}>
                   <td>{index + 1}</td>
 

@@ -20,8 +20,8 @@ const AddCases = () => {
     court: "",
     policeStation: "",
     fixedFor: "",
-    mobileNo: "",
-    lawSection: "",
+    mobileNumber: "",
+    lawAndSection: "",
     comments: "",
   });
 
@@ -31,8 +31,8 @@ const AddCases = () => {
   const { data: companies = [] } = useQuery({
     queryKey: ["companies"],
     queryFn: async () => {
-      const res = await axiosInstance.get("/companies");
-      return res.data;
+      const res = await axiosInstance.get("/company");
+      return res.data.data;
     },
   });
 
@@ -40,36 +40,35 @@ const AddCases = () => {
     queryKey: ["courts"],
     queryFn: async () => {
       const res = await axiosInstance.get("/courts");
-      return res.data;
+      return res.data.data;
     },
   });
 
   const { data: caseTypes = [] } = useQuery({
     queryKey: ["caseTypes"],
     queryFn: async () => {
-      const res = await axiosInstance.get("/cases-type");
-      return res.data;
+      const res = await axiosInstance.get("/caseTypes");
+      return res.data.data;
     },
   });
 
   const { data: policeStations = [] } = useQuery({
     queryKey: ["policeStations"],
     queryFn: async () => {
-      const res = await axiosInstance.get("/police-station");
-      return res.data;
+      const res = await axiosInstance.get("/policeStation");
+      return res.data.data;
     },
   });
 
   /* ================= MUTATION ================= */
   const mutation = useMutation({
     mutationFn: (newCase) =>
-      axiosInstance.post("/add-cases", newCase).then((res) => res.data),
+      axiosInstance.post("/cases", newCase).then((res) => res.data),
     onSuccess: () => {
       toast.success("Case added successfully!");
       setFormData({
         fileNo: "",
         caseNo: "",
-        date: "",
         company: "",
         firstParty: "",
         secondParty: "",
@@ -191,7 +190,7 @@ const AddCases = () => {
             }`}
           >
             <option value="">--Select a Court--</option>
-            {courts.map((court) => (
+            {courts?.map((court) => (
               <option key={court._id} value={court.name}>
                 {court.name}
               </option>
@@ -214,7 +213,7 @@ const AddCases = () => {
             className="select select-bordered w-full"
           >
             <option value="">--Select Company/Group--</option>
-            {companies.map((company) => (
+            {companies?.map((company) => (
               <option key={company._id} value={company.name}>
                 {company.name}
               </option>

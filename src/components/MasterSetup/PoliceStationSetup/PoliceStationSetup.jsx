@@ -19,8 +19,8 @@ const PoliceStationSetup = () => {
   } = useQuery({
     queryKey: ["policeStations"],
     queryFn: async () => {
-      const res = await axiosInstance.get("/police-station");
-      return res.data;
+      const res = await axiosInstance.get("/policeStation");
+      return res.data.data;
     },
   });
 
@@ -36,7 +36,7 @@ const PoliceStationSetup = () => {
 
     const toastId = toast.loading("Adding police station...");
     try {
-      await axiosInstance.post("/police-station", { name });
+      await axiosInstance.post("/policeStation", { name });
       toast.success("Police station added!", { id: toastId });
       e.target.reset();
       refetch();
@@ -54,7 +54,7 @@ const PoliceStationSetup = () => {
 
     const toastId = toast.loading("Updating...");
     try {
-      await axiosInstance.patch(`/police-station/${id}`, { name: editValue });
+      await axiosInstance.patch(`/policeStation/${id}`, { name: editValue });
       toast.success("Updated successfully!", { id: toastId });
       setEditId(null);
       setEditValue("");
@@ -70,7 +70,7 @@ const PoliceStationSetup = () => {
 
     const toastId = toast.loading("Deleting...");
     try {
-      await axiosInstance.delete(`/police-station/${deleteId}`);
+      await axiosInstance.delete(`/policeStation/${deleteId}`);
       toast.success("Deleted successfully!", { id: toastId });
       setDeleteId(null);
       refetch();

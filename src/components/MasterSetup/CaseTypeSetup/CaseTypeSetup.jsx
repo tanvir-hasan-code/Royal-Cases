@@ -22,8 +22,8 @@ const CaseTypeSetup = () => {
   } = useQuery({
     queryKey: ["caseTypes"],
     queryFn: async () => {
-      const res = await axiosInstance.get("/cases-type");
-      return res.data;
+      const res = await axiosInstance.get("/caseTypes");
+      return res.data.data;
     },
   });
 
@@ -39,7 +39,7 @@ const CaseTypeSetup = () => {
 
     const toastId = toast.loading("Adding case type...");
     try {
-      await axiosInstance.post("/cases-type", { name });
+      await axiosInstance.post("/caseTypes", { name });
       toast.success("Case type added!", { id: toastId });
       e.target.reset();
       refetch();
@@ -57,7 +57,7 @@ const CaseTypeSetup = () => {
 
     const toastId = toast.loading("Updating...");
     try {
-      await axiosInstance.patch(`/cases-type/${id}`, {
+      await axiosInstance.patch(`/caseTypes/${id}`, {
         name: editValue,
       });
       toast.success("Updated successfully!", { id: toastId });
@@ -73,7 +73,7 @@ const CaseTypeSetup = () => {
   const confirmDelete = async () => {
     const toastId = toast.loading("Deleting...");
     try {
-      await axiosInstance.delete(`/cases-type/${deleteId}`);
+      await axiosInstance.delete(`/caseTypes/${deleteId}`);
       toast.success("Deleted successfully!", { id: toastId });
       setDeleteId(null);
       setDeleteName("");

@@ -20,10 +20,10 @@ const CompanySetup = () => {
     isLoading,
     refetch,
   } = useQuery({
-    queryKey: ["companies"],
+    queryKey: ["company"],
     queryFn: async () => {
-      const res = await axiosInstance.get("/companies");
-      return res.data;
+      const res = await axiosInstance.get("/company");
+      return res.data.data;
     },
   });
 
@@ -39,7 +39,7 @@ const CompanySetup = () => {
 
     const toastId = toast.loading("Adding company...");
     try {
-      await axiosInstance.post("/companies", { name });
+      await axiosInstance.post("/company", { name });
       toast.success("Company added!", { id: toastId });
       e.target.reset();
       refetch();
@@ -57,7 +57,7 @@ const CompanySetup = () => {
 
     const toastId = toast.loading("Updating...");
     try {
-      await axiosInstance.patch(`/companies/${id}`, {
+      await axiosInstance.patch(`/company/${id}`, {
         name: editValue,
       });
       toast.success("Updated successfully!", { id: toastId });
@@ -73,7 +73,7 @@ const CompanySetup = () => {
   const confirmDelete = async () => {
     const toastId = toast.loading("Deleting...");
     try {
-      await axiosInstance.delete(`/companies/${deleteId}`);
+      await axiosInstance.delete(`/company/${deleteId}`);
       toast.success("Deleted successfully!", { id: toastId });
       setDeleteId(null);
       setDeleteName("");

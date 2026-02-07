@@ -19,6 +19,7 @@ const AllCases = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const [cases, setCases] = useState([]);
 
+
   const initialPage = useMemo(
     () => parseInt(searchParams.get("page")) || 1,
     [],
@@ -46,8 +47,9 @@ const AllCases = () => {
   });
 
   useEffect(() => {
-    if (data?.cases) setCases(data.cases);
-  }, [data?.cases]);
+    if (data?.data) setCases(data.data);
+  }, [data?.data]);
+
 
   const totalPages = data?.totalPages || 0;
 
