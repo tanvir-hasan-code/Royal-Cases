@@ -669,8 +669,10 @@ const DetailsEdit = () => {
             </div>
           ) : (
             <span className="text-gray-500">No payments found.</span>
-          )}
-          <InfoRow label="Paid" value={payments?.totalAmount || 0} />
+				  )}
+				  <div className="border-t-2">
+          <InfoRow  label="Paid" value={payments?.totalAmount || 0} />
+				  </div>
         </Card>
 
         {/* Previous Dates */}

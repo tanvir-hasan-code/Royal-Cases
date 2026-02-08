@@ -14,7 +14,6 @@ const EditCaseModal = ({ caseData, onClose, onUpdated }) => {
   const [formData, setFormData] = useState({
     fileNo: caseData.fileNo || "",
     caseNo: caseData.caseNo || "",
-    date: caseData.date ? caseData.date.split("T")[0] : "",
     company: caseData.company || "",
     firstParty: caseData.firstParty || "",
     secondParty: caseData.secondParty || "",
@@ -36,23 +35,23 @@ const EditCaseModal = ({ caseData, onClose, onUpdated }) => {
 
   // ================= FETCH DROPDOWN DATA =================
   const { data: companies = [] } = useQuery({
-    queryKey: ["companies"],
-    queryFn: async () => (await axiosInstance.get("/companies")).data,
+    queryKey: ["company"],
+    queryFn: async () => (await axiosInstance.get("/company")).data.data,
   });
 
   const { data: courts = [] } = useQuery({
     queryKey: ["courts"],
-    queryFn: async () => (await axiosInstance.get("/courts")).data,
+    queryFn: async () => (await axiosInstance.get("/courts")).data.data,
   });
 
   const { data: caseTypes = [] } = useQuery({
     queryKey: ["caseTypes"],
-    queryFn: async () => (await axiosInstance.get("/cases-type")).data,
+    queryFn: async () => (await axiosInstance.get("/caseTypes")).data.data,
   });
 
   const { data: policeStations = [] } = useQuery({
     queryKey: ["policeStations"],
-    queryFn: async () => (await axiosInstance.get("/police-station")).data,
+    queryFn: async () => (await axiosInstance.get("/policeStation")).data.data,
   });
   useEffect(() => {
     const current = JSON.stringify(formData);
@@ -63,7 +62,7 @@ const EditCaseModal = ({ caseData, onClose, onUpdated }) => {
   const mutation = useMutation({
     mutationFn: (updatedCase) =>
       axiosInstance
-        .put(`/update-case/${caseData._id}`, updatedCase)
+        .put(`/cases/${caseData._id}`, updatedCase)
         .then((res) => res.data),
 
     onSuccess: (data) => {
@@ -95,7 +94,7 @@ const EditCaseModal = ({ caseData, onClose, onUpdated }) => {
   };
 
   const validate = () => {
-    const requiredFields = ["fileNo", "caseNo", "date", "court", "firstParty"];
+    const requiredFields = ["fileNo", "caseNo", "court", "firstParty"];
     const newErrors = {};
     requiredFields.forEach((field) => {
       if (!formData[field]?.trim()) {
@@ -161,21 +160,6 @@ const EditCaseModal = ({ caseData, onClose, onUpdated }) => {
               )}
             </div>
 
-            {/* Date */}
-            <div className="form-control w-full">
-              <label className="label">Date *</label>
-              <input
-                type="date"
-                name="date"
-                value={formData.date}
-                onChange={handleChange}
-                className={`input input-bordered w-full ${errors.date && "input-error"}`}
-              />
-              {errors.date && (
-                <span className="text-red-500 text-sm">{errors.date}</span>
-              )}
-            </div>
-
             {/* Court */}
             <div className="form-control w-full">
               <label className="label">Court *</label>
@@ -186,7 +170,7 @@ const EditCaseModal = ({ caseData, onClose, onUpdated }) => {
                 className={`select select-bordered w-full ${errors.court && "select-error"}`}
               >
                 <option value="">--Select Court--</option>
-                {courts.map((court) => (
+                {courts?.map((court) => (
                   <option key={court._id} value={court.name}>
                     {court.name}
                   </option>

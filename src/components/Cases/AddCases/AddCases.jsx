@@ -11,7 +11,6 @@ const AddCases = () => {
   const [formData, setFormData] = useState({
     fileNo: "",
     caseNo: "",
-    date: "",
     company: "",
     firstParty: "",
     secondParty: "",
@@ -95,7 +94,7 @@ const AddCases = () => {
   };
 
   const validate = () => {
-    const requiredFields = ["fileNo", "caseNo", "date", "court", "firstParty"];
+    const requiredFields = ["fileNo", "caseNo", "court", "firstParty"];
     const newErrors = {};
     requiredFields.forEach((field) => {
       if (!formData[field]) newErrors[field] = "This field is required";
@@ -154,25 +153,6 @@ const AddCases = () => {
           />
           {errors.caseNo && (
             <span className="text-red-500 text-sm mt-1">{errors.caseNo}</span>
-          )}
-        </div>
-
-        {/* Date */}
-        <div className="form-control w-full">
-          <label className="label">
-            <span className="label-text">Date *</span>
-          </label>
-          <input
-            type="date"
-            name="date"
-            value={formData.date}
-            onChange={handleChange}
-            className={`input input-bordered w-full ${
-              errors.date && "input-error"
-            }`}
-          />
-          {errors.date && (
-            <span className="text-red-500 text-sm mt-1">{errors.date}</span>
           )}
         </div>
 
