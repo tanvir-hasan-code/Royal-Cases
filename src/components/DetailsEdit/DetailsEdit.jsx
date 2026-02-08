@@ -260,6 +260,7 @@ const DetailsEdit = () => {
   const [editingPayment, setEditingPayment] = useState(null);
   const [isAddDateOpen, setIsAddDateOpen] = useState(false);
   const [selectedCase, setSelectedCase] = useState(null);
+  const [editingDate, setEditingDate] = useState(null);
 
   const [detailsEdit, setDetailsEdit] = useState({
     description: "",
@@ -312,12 +313,23 @@ const DetailsEdit = () => {
   // Payment load
   const fetchPayments = async () => {
     const res = await axiosSecure.get(`/casePayments/${id}/payments`);
-    return res.data || [];
+    return res.data || {};
   };
 
   const { data: payments = [], refetch: refetchPayments } = useQuery({
     queryKey: ["casePayments", id],
     queryFn: fetchPayments,
+    enabled: !!id,
+  });
+  // date load
+  const fetchDates = async () => {
+    const res = await axiosSecure.get(`/caseDates/${id}/dates`);
+    return res.data || [];
+  };
+
+  const { data: Dates = [], refetch: refetchDates } = useQuery({
+    queryKey: ["caseDates", id],
+    queryFn: fetchDates,
     enabled: !!id,
   });
 
@@ -326,6 +338,10 @@ const DetailsEdit = () => {
   const advocateParties = parties.filter(
     (p) => p.type === "advocate" || p.type === "opposite",
   );
+
+  // Participate Dates isNext
+  const nextDate = Dates?.nextDate || null;
+  const previousDates = Dates?.data?.filter((d) => !d.isNext) || [];
 
   if (loading) return <div className="p-6">Loading case details...</div>;
   if (!caseData) return <div className="p-6 text-red-500">Case not found</div>;
@@ -456,26 +472,45 @@ const DetailsEdit = () => {
     const description = e.target.fixedFor.value;
 
     try {
-      await axiosSecure.post(`/caseDates/${selectedCase._id}/dates`, {
-        caseId: selectedCase._id,
-        date,
-        description,
-      });
+      if (editingDate?._id) {
+        // ✅ UPDATE
+        await axiosSecure.put(
+          `/caseDates/${editingDate.caseId}/dates/${editingDate._id}`,
+          { date, description },
+        );
 
-      Swal.fire({
-        icon: "success",
-        title: "Date added successfully",
-        timer: 1500,
-        showConfirmButton: false,
-      });
+        toast.success("Date updated successfully!");
+      } else {
+        // ✅ ADD NEW
+        await axiosSecure.post(`/caseDates/${selectedCase._id}/dates`, {
+          caseId: selectedCase._id,
+          date,
+          description,
+          isNext: true,
+        });
 
+        toast.success("Date added successfully!");
+      }
+
+      refetchDates();
       setIsAddDateOpen(false);
       setSelectedCase(null);
+      setEditingDate(null);
     } catch (err) {
-      Swal.fire({
-        icon: "error",
-        title: "Failed to add date",
-      });
+      console.error(err);
+      toast.error("Failed to save date");
+    }
+  };
+
+  const handleDeleteDate = async (date) => {
+    console.log(date.caseId, date._id);
+    try {
+      await axiosSecure.delete(`/caseDates/${date.caseId}/dates/${date._id}`);
+      toast.success("Date deleted successfully!");
+      refetchDates();
+    } catch (err) {
+      console.error(err);
+      toast.error("Failed to delete date");
     }
   };
 
@@ -528,7 +563,7 @@ const DetailsEdit = () => {
             label="Payable Fees"
             value={singleDetails?.fees?.payable || 0}
           />
-          <InfoRow label="Paid" value={caseData.fees?.paid || 0} />
+          <InfoRow label="Paid" value={payments?.totalAmount || 0} />
         </Card>
 
         {/* Appointed Party Details */}
@@ -712,24 +747,111 @@ const DetailsEdit = () => {
             <InfoRow label="Paid" value={payments?.totalAmount || 0} />
           </div>
         </Card>
-
         {/* Dates */}
         <Card
-          title="Dates"
+          title="Case Dates"
           onEdit={() => handleAddDate(caseData)}
           editLabel="Add New"
           icon={<FaPlus />}
         >
-          {caseData.previousDates?.length ? (
-            caseData.previousDates.map((date, idx) => (
-              <InfoRow
-                key={idx}
-                label={`Date ${idx + 1}`}
-                value={new Date(date).toLocaleDateString()}
-              />
-            ))
+          {/* 🔥 Next Date */}
+          {nextDate && (
+            <div className="mb-4">
+              <h4 className="font-semibold text-green-600 mb-2">
+                🔔 Next Hearing Date
+              </h4>
+
+              <div className="overflow-x-auto">
+                <table className="table table-bordered w-full text-sm bg-green-50">
+                  <thead>
+                    <tr className="bg-green-100">
+                      <th>Date</th>
+                      <th>Description</th>
+                      <th>Status</th>
+                      <th>Action</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>{new Date(nextDate.date).toLocaleDateString()}</td>
+                      <td>{nextDate.description}</td>
+                      <td>
+                        <span className="badge badge-success">Next</span>
+                      </td>
+                      <td className="flex gap-2">
+                        <button
+                          className="btn btn-xs btn-success"
+                          onClick={() => {
+                            setEditingDate(nextDate);
+                            setSelectedCase({ _id: nextDate.caseId });
+                            setIsAddDateOpen(true);
+                          }}
+                        >
+                          Update
+                        </button>
+
+                        <button
+                          className="btn btn-xs btn-error"
+                          onClick={() => handleDeleteDate(nextDate)}
+                        >
+                          Delete
+                        </button>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+
+          {/* 📜 Previous Dates */}
+          <h4 className="font-semibold text-gray-700 mb-2">Previous Dates</h4>
+
+          {previousDates.length ? (
+            <div className="overflow-x-auto">
+              <table className="table table-zebra w-full text-sm">
+                <thead>
+                  <tr>
+                    <th>Date</th>
+                    <th>Description</th>
+                    <th>Status</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {previousDates.map((date) => (
+                    <tr key={date._id}>
+                      <td>{new Date(date.date).toLocaleDateString()}</td>
+                      <td>{date.description}</td>
+                      <td>
+                        <span className="badge badge-ghost">Previous</span>
+                      </td>
+                      <td className="flex gap-2">
+                        <button
+                          className="btn btn-xs btn-success"
+                          onClick={() => {
+                            setEditingDate(date);
+                            setSelectedCase({ _id: date.caseId });
+                            setIsAddDateOpen(true);
+                          }}
+                        >
+                          Update
+                        </button>
+
+                        <button
+                          className="btn btn-xs btn-error"
+                          onClick={() => handleDeleteDate(date)}
+                        >
+                          Delete
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           ) : (
-            <span className="text-gray-500">No previous dates</span>
+            <span className="text-gray-500">No previous dates found.</span>
           )}
         </Card>
       </div>
@@ -823,6 +945,11 @@ const DetailsEdit = () => {
                 <input
                   type="date"
                   name="date"
+                  defaultValue={
+                    editingDate?.date
+                      ? new Date(editingDate.date).toISOString().split("T")[0]
+                      : ""
+                  }
                   required
                   className="input input-bordered w-full"
                 />
@@ -836,7 +963,7 @@ const DetailsEdit = () => {
                 <input
                   type="text"
                   name="fixedFor"
-                  placeholder="Hearing / Argument / Evidence"
+                  defaultValue={editingDate?.description || ""}
                   required
                   className="input input-bordered w-full"
                 />

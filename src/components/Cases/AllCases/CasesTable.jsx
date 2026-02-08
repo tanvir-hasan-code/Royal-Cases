@@ -66,6 +66,7 @@ const CasesTable = ({ cases, onEdit, onDelete, onView }) => {
         caseId: selectedCase._id,
         date,
         description,
+        isNext: true
       });
 
       Swal.fire({
