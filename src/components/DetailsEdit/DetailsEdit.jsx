@@ -85,12 +85,12 @@ const DetailsModal = ({
   </div>
 );
 
-const PaymentModal = ({ onSave, onClose }) => {
+const PaymentModal = ({ initialData, onSave, onClose }) => {
   const [form, setForm] = useState({
-    name: "",
-    paymentType: "cash", // cash | check
-    amount: "",
-    date: "",
+    name: initialData?.name || "",
+    paymentType: initialData?.paymentType || "cash",
+    amount: initialData?.amount || "",
+    date: initialData?.date ? initialData.date.split("T")[0] : "",
   });
 
   const handleChange = (e) => {
@@ -113,12 +113,14 @@ const PaymentModal = ({ onSave, onClose }) => {
   return (
     <div className="fixed inset-0 z-[9999] bg-black/60 flex items-center justify-center">
       <div className="bg-base-100 w-full max-w-md rounded-xl p-6 space-y-4">
-        <h3 className="text-lg font-semibold text-center">Add Payment</h3>
+        <h3 className="text-lg font-semibold text-center">
+          {initialData ? "Update Payment" : "Add Payment"}
+        </h3>
 
         <input
           name="name"
           className="input input-bordered w-full"
-          placeholder="Payment By (Name)"
+          placeholder="Payment By"
           value={form.name}
           onChange={handleChange}
         />
@@ -141,6 +143,7 @@ const PaymentModal = ({ onSave, onClose }) => {
           value={form.amount}
           onChange={handleChange}
         />
+
         <input
           name="date"
           type="date"
@@ -151,7 +154,7 @@ const PaymentModal = ({ onSave, onClose }) => {
 
         <div className="flex flex-col gap-2 pt-2">
           <button className="btn btn-primary w-full" onClick={handleSubmit}>
-            Save Payment
+            {initialData ? "Update Payment" : "Save Payment"}
           </button>
           <button className="btn btn-outline w-full" onClick={onClose}>
             Cancel
@@ -253,6 +256,7 @@ const DetailsEdit = () => {
   const [appointedUpdateOpen, setAppointedUpdateOpen] = useState(false);
   const [editingParty, setEditingParty] = useState(null);
   const [paymentModalOpen, setPaymentModalOpen] = useState(false);
+  const [editingPayment, setEditingPayment] = useState(null);
 
   const [detailsEdit, setDetailsEdit] = useState({
     description: "",
@@ -399,32 +403,43 @@ const DetailsEdit = () => {
 
   const handlePaymentSave = async (paymentData) => {
     try {
-      await axiosSecure.post(`/casePayments/${id}/payments`, paymentData);
+      if (editingPayment?._id) {
+        // ✅ UPDATE
+        await axiosSecure.put(
+          `/casePayments/${id}/payments/${editingPayment._id}`,
+          paymentData,
+        );
 
-      toast.success("Payment added successfully!");
+        toast.success("Payment updated successfully!");
+      } else {
+        // ✅ ADD
+        await axiosSecure.post(`/casePayments/${id}/payments`, paymentData);
+
+        toast.success("Payment added successfully!");
+      }
+
       setPaymentModalOpen(false);
-
-		refetchPayments();
+      setEditingPayment(null);
+      refetchPayments();
     } catch (err) {
-      console.error("Payment save failed:", err);
-      toast.error("Failed to add payment");
+      console.error(err);
+      toast.error("Failed to save payment");
     }
   };
-	
-	const handleDeletePayment = async (payment) => {
-  try {
-    await axiosSecure.delete(
-      `/casePayments/payments/${payment._id}`,
-    );
 
-    toast.success("Payment deleted!");
-    refetchPayments();
-  } catch (err) {
-    console.error(err);
-    toast.error("Failed to delete payment");
-  }
-};
+  const handleDeletePayment = async (payment) => {
+    try {
+      await axiosSecure.delete(
+        `/casePayments/${payment.caseId}/payments/${payment._id}`,
+      );
 
+      toast.success("Payment deleted!");
+      refetchPayments();
+    } catch (err) {
+      console.error(err);
+      toast.error("Failed to delete payment");
+    }
+  };
 
   return (
     <div className="p-6 space-y-6">
@@ -639,6 +654,7 @@ const DetailsEdit = () => {
                         >
                           Update
                         </button>
+
                         <button
                           className="btn btn-xs btn-error"
                           onClick={() => handleDeletePayment(payment)}
@@ -649,12 +665,12 @@ const DetailsEdit = () => {
                     </tr>
                   ))}
                 </tbody>
-						  </table>
+              </table>
             </div>
           ) : (
             <span className="text-gray-500">No payments found.</span>
-				  )}
-				  <InfoRow label="Paid" value={payments?.totalAmount || 0} />
+          )}
+          <InfoRow label="Paid" value={payments?.totalAmount || 0} />
         </Card>
 
         {/* Previous Dates */}
@@ -743,8 +759,12 @@ const DetailsEdit = () => {
       )}
       {paymentModalOpen && (
         <PaymentModal
+          initialData={editingPayment}
           onSave={handlePaymentSave}
-          onClose={() => setPaymentModalOpen(false)}
+          onClose={() => {
+            setPaymentModalOpen(false);
+            setEditingPayment(null);
+          }}
         />
       )}
     </div>
