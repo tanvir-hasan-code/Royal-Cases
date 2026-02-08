@@ -85,6 +85,83 @@ const DetailsModal = ({
   </div>
 );
 
+const PaymentModal = ({ onSave, onClose }) => {
+  const [form, setForm] = useState({
+    name: "",
+    paymentType: "cash", // cash | check
+    amount: "",
+    date: "",
+  });
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setForm((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleSubmit = () => {
+    if (!form.name || !form.amount) {
+      toast.error("Please fill all required fields");
+      return;
+    }
+
+    onSave({
+      ...form,
+      amount: Number(form.amount),
+    });
+  };
+
+  return (
+    <div className="fixed inset-0 z-[9999] bg-black/60 flex items-center justify-center">
+      <div className="bg-base-100 w-full max-w-md rounded-xl p-6 space-y-4">
+        <h3 className="text-lg font-semibold text-center">Add Payment</h3>
+
+        <input
+          name="name"
+          className="input input-bordered w-full"
+          placeholder="Payment By (Name)"
+          value={form.name}
+          onChange={handleChange}
+        />
+
+        <select
+          name="paymentType"
+          className="select select-bordered w-full"
+          value={form.paymentType}
+          onChange={handleChange}
+        >
+          <option value="cash">Cash</option>
+          <option value="check">Check</option>
+        </select>
+
+        <input
+          name="amount"
+          type="number"
+          className="input input-bordered w-full"
+          placeholder="Paid Amount"
+          value={form.amount}
+          onChange={handleChange}
+        />
+        <input
+          name="date"
+          type="date"
+          className="input input-bordered w-full"
+          value={form.date}
+          onChange={handleChange}
+        />
+
+        <div className="flex flex-col gap-2 pt-2">
+          <button className="btn btn-primary w-full" onClick={handleSubmit}>
+            Save Payment
+          </button>
+          <button className="btn btn-outline w-full" onClick={onClose}>
+            Cancel
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 const AppointedPartyModal = ({ initialData, onSave, onClose }) => {
   const [form, setForm] = useState(() => ({
     type: initialData?.type || "appointed", // default type
@@ -175,6 +252,7 @@ const DetailsEdit = () => {
   const [appointedEditOpen, setAppointedEditOpen] = useState(false);
   const [appointedUpdateOpen, setAppointedUpdateOpen] = useState(false);
   const [editingParty, setEditingParty] = useState(null);
+  const [paymentModalOpen, setPaymentModalOpen] = useState(false);
 
   const [detailsEdit, setDetailsEdit] = useState({
     description: "",
@@ -221,6 +299,18 @@ const DetailsEdit = () => {
   const { data: parties = [], refetch } = useQuery({
     queryKey: ["caseParties", id],
     queryFn: fetchParties,
+    enabled: !!id,
+  });
+
+  // Payment load
+  const fetchPayments = async () => {
+    const res = await axiosSecure.get(`/casePayments/${id}/payments`);
+    return res.data || [];
+  };
+
+  const { data: payments = [], refetch: refetchPayments } = useQuery({
+    queryKey: ["casePayments", id],
+    queryFn: fetchPayments,
     enabled: !!id,
   });
 
@@ -306,7 +396,35 @@ const DetailsEdit = () => {
 
     setActiveEdit("details");
   };
-  console.table(detailsEdit);
+
+  const handlePaymentSave = async (paymentData) => {
+    try {
+      await axiosSecure.post(`/casePayments/${id}/payments`, paymentData);
+
+      toast.success("Payment added successfully!");
+      setPaymentModalOpen(false);
+
+		refetchPayments();
+    } catch (err) {
+      console.error("Payment save failed:", err);
+      toast.error("Failed to add payment");
+    }
+  };
+	
+	const handleDeletePayment = async (payment) => {
+  try {
+    await axiosSecure.delete(
+      `/casePayments/payments/${payment._id}`,
+    );
+
+    toast.success("Payment deleted!");
+    refetchPayments();
+  } catch (err) {
+    console.error(err);
+    toast.error("Failed to delete payment");
+  }
+};
+
 
   return (
     <div className="p-6 space-y-6">
@@ -480,12 +598,63 @@ const DetailsEdit = () => {
         {/* Payment Details */}
         <Card
           title="Payment Details"
-          onEdit={() => setActiveEdit("payment")}
-          editLabel={caseData.fees?.payable ? "Edit" : "Add New"}
-          icon={caseData.fees?.payable ? <FaEdit /> : <FaPlus />}
+          onEdit={() => setPaymentModalOpen(true)}
+          editLabel="Add Payment"
+          icon={<FaPlus />}
         >
-          <InfoRow label="Payable Fees" value={caseData.fees?.payable || 0} />
-          <InfoRow label="Paid" value={caseData.fees?.paid || 0} />
+          {payments?.data?.length ? (
+            <div className="overflow-x-auto">
+              <table className="table table-zebra w-full text-sm">
+                <thead>
+                  <tr>
+                    <th>Name</th>
+                    <th>Method</th>
+                    <th>Paid Amount</th>
+                    <th>Date</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {payments?.data?.map((payment) => (
+                    <tr key={payment._id}>
+                      <td>{payment.name}</td>
+                      <td>
+                        <span className="badge badge-info">
+                          {payment.paymentType}
+                        </span>
+                      </td>
+                      <td>{payment.amount}</td>
+                      <td>
+                        {payment.date
+                          ? new Date(payment.date).toLocaleDateString()
+                          : "-"}
+                      </td>
+                      <td className="flex gap-2">
+                        <button
+                          className="btn btn-xs btn-success"
+                          onClick={() => {
+                            setEditingPayment(payment);
+                            setPaymentModalOpen(true);
+                          }}
+                        >
+                          Update
+                        </button>
+                        <button
+                          className="btn btn-xs btn-error"
+                          onClick={() => handleDeletePayment(payment)}
+                        >
+                          Delete
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+						  </table>
+            </div>
+          ) : (
+            <span className="text-gray-500">No payments found.</span>
+				  )}
+				  <InfoRow label="Paid" value={payments?.totalAmount || 0} />
         </Card>
 
         {/* Previous Dates */}
@@ -570,6 +739,12 @@ const DetailsEdit = () => {
             setAppointedUpdateOpen(false);
             setEditingParty(null);
           }}
+        />
+      )}
+      {paymentModalOpen && (
+        <PaymentModal
+          onSave={handlePaymentSave}
+          onClose={() => setPaymentModalOpen(false)}
         />
       )}
     </div>
