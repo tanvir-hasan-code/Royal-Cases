@@ -151,7 +151,6 @@ const CasesTable = ({ cases, onEdit, onDelete, onView }) => {
               <th>Law & Section</th>
               <th>Fixed For</th>
               <th>Status</th>
-              <th>Call</th>
               <th className="text-right action-col">Action</th>
             </tr>
           </thead>
@@ -187,20 +186,6 @@ const CasesTable = ({ cases, onEdit, onDelete, onView }) => {
                     >
                       {c.status}
                     </span>
-                  </td>
-
-                  <td>
-                    {c.mobileNo ? (
-                      <a
-                        href={`tel:${c.mobileNo}`}
-                        className="btn btn-sm btn-circle bg-green-500 text-white border-none"
-                        onClick={(e) => e.stopPropagation()}
-                      >
-                        <FiPhone />
-                      </a>
-                    ) : (
-                      "-"
-                    )}
                   </td>
 
                   <td className="text-right action-col overflow-visible">

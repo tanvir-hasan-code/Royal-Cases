@@ -130,6 +130,7 @@ const AppointedPartyModal = ({ initialData, onSave, onClose }) => {
 
         <input
           name="mobile"
+          type="number"
           className="input input-bordered w-full"
           value={form.mobile}
           onChange={handleChange}
@@ -207,6 +208,16 @@ const DetailsEdit = () => {
     const res = await axiosSecure.get(`/caseParty/${id}/parties`);
     return res.data?.data || [];
   };
+  const fetchDetails = async () => {
+    const res = await axiosSecure.get(`/casesDetails/${id}/details`);
+    return res.data || [];
+  };
+
+  const { data: details = [], refetch: dataRefetch } = useQuery({
+    queryKey: ["caseDetails", id],
+    queryFn: fetchDetails,
+    enabled: !!id,
+  });
   const { data: parties = [], refetch } = useQuery({
     queryKey: ["caseParties", id],
     queryFn: fetchParties,
@@ -226,7 +237,7 @@ const DetailsEdit = () => {
 
       setCaseData({ ...caseData, ...updatedData });
       await axiosSecure.post(`/casesDetails/${id}/details`, updatedData);
-
+      dataRefetch();
       toast.success("Case details updated successfully!");
       refetch();
       setActiveEdit(null);
@@ -270,6 +281,17 @@ const DetailsEdit = () => {
       toast.error("Failed to delete party");
     }
   };
+	const singleDetails = details?.length ? details[0] : null;
+	const handleDetailsEdit = () => {
+  setDetailsEdit({
+    description: singleDetails?.description || "",
+    laws: singleDetails?.laws || "",
+    fees: { payable: singleDetails?.fees?.payable || 0 },
+  });
+
+  setActiveEdit("details");
+};
+console.table(detailsEdit)
 
   return (
     <div className="p-6 space-y-6">
@@ -307,23 +329,19 @@ const DetailsEdit = () => {
         {/* Case Details */}
         <Card
           title="Case Details"
-          onEdit={() => setActiveEdit("details")}
-          editLabel={
-            caseData.description || caseData.laws || caseData.fees?.payable
-              ? "Edit"
-              : "Add New"
-          }
-          icon={
-            caseData.description || caseData.laws || caseData.fees?.payable ? (
-              <FaEdit />
-            ) : (
-              <FaPlus />
-            )
-          }
+          onEdit={handleDetailsEdit}
+          editLabel={singleDetails ? "Edit" : "Add New"}
+          icon={singleDetails ? <FaEdit /> : <FaPlus />}
         >
-          <InfoRow label="Description" value={caseData.description} />
-          <InfoRow label="Case Laws" value={caseData.laws} />
-          <InfoRow label="Payable Fees" value={caseData.fees?.payable || 0} />
+          <InfoRow
+            label="Description"
+            value={singleDetails?.description || "-"}
+          />
+          <InfoRow label="Case Laws" value={singleDetails?.laws || "-"} />
+          <InfoRow
+            label="Payable Fees"
+            value={singleDetails?.fees?.payable || 0}
+          />
           <InfoRow label="Paid" value={caseData.fees?.paid || 0} />
         </Card>
 
