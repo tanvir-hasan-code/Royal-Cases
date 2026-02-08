@@ -59,13 +59,13 @@ const CasesTable = ({ cases, onEdit, onDelete, onView }) => {
     e.preventDefault();
 
     const date = e.target.date.value;
-    const fixedFor = e.target.fixedFor.value;
+    const description = e.target.fixedFor.value;
 
     try {
-      await axiosSecure.patch(`/cases/add-date/${selectedCase._id}`, {
+      await axiosSecure.post(`/caseDates/${selectedCase._id}/dates`, {
         caseId: selectedCase._id,
         date,
-        fixedFor,
+        description,
       });
 
       Swal.fire({

@@ -5,6 +5,7 @@ import EditCaseModal from "../Cases/AllCases/EditCaseModal";
 import toast from "react-hot-toast";
 import { FaEdit, FaPlus } from "react-icons/fa";
 import { useQuery } from "@tanstack/react-query";
+import Swal from "sweetalert2";
 
 const InfoRow = ({ label, value }) => (
   <div className="flex justify-between border-b py-2 text-sm">
@@ -257,6 +258,8 @@ const DetailsEdit = () => {
   const [editingParty, setEditingParty] = useState(null);
   const [paymentModalOpen, setPaymentModalOpen] = useState(false);
   const [editingPayment, setEditingPayment] = useState(null);
+  const [isAddDateOpen, setIsAddDateOpen] = useState(false);
+  const [selectedCase, setSelectedCase] = useState(null);
 
   const [detailsEdit, setDetailsEdit] = useState({
     description: "",
@@ -438,6 +441,41 @@ const DetailsEdit = () => {
     } catch (err) {
       console.error(err);
       toast.error("Failed to delete payment");
+    }
+  };
+
+  const handleAddDate = (caseData) => {
+    setSelectedCase(caseData);
+    setIsAddDateOpen(true);
+  };
+
+  const handleAddDateSubmit = async (e) => {
+    e.preventDefault();
+
+    const date = e.target.date.value;
+    const description = e.target.fixedFor.value;
+
+    try {
+      await axiosSecure.post(`/caseDates/${selectedCase._id}/dates`, {
+        caseId: selectedCase._id,
+        date,
+        description,
+      });
+
+      Swal.fire({
+        icon: "success",
+        title: "Date added successfully",
+        timer: 1500,
+        showConfirmButton: false,
+      });
+
+      setIsAddDateOpen(false);
+      setSelectedCase(null);
+    } catch (err) {
+      Swal.fire({
+        icon: "error",
+        title: "Failed to add date",
+      });
     }
   };
 
@@ -669,18 +707,18 @@ const DetailsEdit = () => {
             </div>
           ) : (
             <span className="text-gray-500">No payments found.</span>
-				  )}
-				  <div className="border-t-2">
-          <InfoRow  label="Paid" value={payments?.totalAmount || 0} />
-				  </div>
+          )}
+          <div className="border-t-2">
+            <InfoRow label="Paid" value={payments?.totalAmount || 0} />
+          </div>
         </Card>
 
-        {/* Previous Dates */}
+        {/* Dates */}
         <Card
-          title="Previous Dates"
-          onEdit={() => setActiveEdit("previousDates")}
-          editLabel={caseData.previousDates?.length ? "Edit" : "Add New"}
-          icon={caseData.previousDates?.length ? <FaEdit /> : <FaPlus />}
+          title="Dates"
+          onEdit={() => handleAddDate(caseData)}
+          editLabel="Add New"
+          icon={<FaPlus />}
         >
           {caseData.previousDates?.length ? (
             caseData.previousDates.map((date, idx) => (
@@ -768,6 +806,58 @@ const DetailsEdit = () => {
             setEditingPayment(null);
           }}
         />
+      )}
+      {isAddDateOpen && (
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60">
+          <div className="bg-base-100 w-full max-w-md rounded-xl shadow-lg p-6">
+            <h2 className="text-xl font-bold mb-4 text-center">
+              Add Case Date
+            </h2>
+
+            <form onSubmit={handleAddDateSubmit} className="space-y-4">
+              {/* Date */}
+              <div>
+                <label className="label">
+                  <span className="label-text font-medium">Date</span>
+                </label>
+                <input
+                  type="date"
+                  name="date"
+                  required
+                  className="input input-bordered w-full"
+                />
+              </div>
+
+              {/* Fixed For */}
+              <div>
+                <label className="label">
+                  <span className="label-text font-medium">Fixed For</span>
+                </label>
+                <input
+                  type="text"
+                  name="fixedFor"
+                  placeholder="Hearing / Argument / Evidence"
+                  required
+                  className="input input-bordered w-full"
+                />
+              </div>
+
+              {/* Buttons */}
+              <div className="flex gap-3 pt-2 flex-col">
+                <button type="submit" className="btn btn-primary w-full">
+                  Save
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setIsAddDateOpen(false)}
+                  className="btn btn-outline w-full"
+                >
+                  Cancel
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
       )}
     </div>
   );
