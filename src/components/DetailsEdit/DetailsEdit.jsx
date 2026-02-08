@@ -229,23 +229,32 @@ const DetailsEdit = () => {
 
   const handleDetailsSave = async () => {
     try {
-      const updatedData = {
+      const payload = {
         description: detailsEdit.description,
         laws: detailsEdit.laws,
         fees: { payable: Number(detailsEdit.fees.payable) },
       };
 
-      setCaseData({ ...caseData, ...updatedData });
-      await axiosSecure.post(`/casesDetails/${id}/details`, updatedData);
+      if (singleDetails?._id) {
+        // ✅ EDIT → UPDATE (PUT)
+        await axiosSecure.put(
+          `/casesDetails/details/${singleDetails._id}`,
+          payload,
+        );
+      } else {
+        // ✅ ADD NEW → CREATE (POST)
+        await axiosSecure.post(`/casesDetails/${id}/details`, payload);
+      }
+
       dataRefetch();
-      toast.success("Case details updated successfully!");
-      refetch();
+      toast.success("Case details saved successfully!");
       setActiveEdit(null);
     } catch (error) {
-      console.error("Failed to update case:", error);
-      toast.error("Failed to update case. Please try again!");
+      console.error("Failed to save case details:", error);
+      toast.error("Failed to save case details!");
     }
   };
+
   const handleAppointedSave = async (data) => {
     try {
       const res = await axiosSecure.post(`/caseParty/${id}/parties`, data);
@@ -281,17 +290,17 @@ const DetailsEdit = () => {
       toast.error("Failed to delete party");
     }
   };
-	const singleDetails = details?.length ? details[0] : null;
-	const handleDetailsEdit = () => {
-  setDetailsEdit({
-    description: singleDetails?.description || "",
-    laws: singleDetails?.laws || "",
-    fees: { payable: singleDetails?.fees?.payable || 0 },
-  });
+  const singleDetails = details?.length ? details[0] : null;
+  const handleDetailsEdit = () => {
+    setDetailsEdit({
+      description: singleDetails?.description || "",
+      laws: singleDetails?.laws || "",
+      fees: { payable: singleDetails?.fees?.payable || 0 },
+    });
 
-  setActiveEdit("details");
-};
-console.table(detailsEdit)
+    setActiveEdit("details");
+  };
+  console.table(detailsEdit);
 
   return (
     <div className="p-6 space-y-6">
