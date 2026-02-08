@@ -224,6 +224,12 @@ const DetailsEdit = () => {
     enabled: !!id,
   });
 
+  const appointedParties = parties.filter((p) => p.type === "appointed");
+
+  const advocateParties = parties.filter(
+    (p) => p.type === "advocate" || p.type === "opposite",
+  );
+
   if (loading) return <div className="p-6">Loading case details...</div>;
   if (!caseData) return <div className="p-6 text-red-500">Case not found</div>;
 
@@ -364,7 +370,7 @@ const DetailsEdit = () => {
           editLabel="Add New"
           icon={<FaPlus />}
         >
-          {parties?.length ? (
+          {appointedParties?.length ? (
             <div className="overflow-x-auto">
               <table className="table table-zebra w-full text-sm">
                 <thead>
@@ -378,7 +384,7 @@ const DetailsEdit = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {parties.map((party) => (
+                  {appointedParties.map((party) => (
                     <tr key={party._id}>
                       <td>{party.name}</td>
                       <td>{party.mobile}</td>
@@ -419,15 +425,56 @@ const DetailsEdit = () => {
           )}
         </Card>
 
-        {/* Opposite Advocate Details */}
         <Card
           title="Opposite Advocate Details"
-          onEdit={() => setActiveEdit("opposite")}
-          editLabel={caseData.oppositeAdvocate ? "Edit" : "Add New"}
-          icon={caseData.oppositeAdvocate ? <FaEdit /> : <FaPlus />}
+          onEdit={() => {
+            setEditingParty(null);
+            setAppointedUpdateOpen(true);
+          }}
+          editLabel="Add New"
+          icon={<FaPlus />}
         >
-          <InfoRow label="Advocate Name" value={caseData.oppositeAdvocate} />
-          <InfoRow label="Phone" value={caseData.oppositeAdvocatePhone} />
+          {advocateParties.length ? (
+            <div className="overflow-x-auto">
+              <table className="table table-zebra w-full text-sm">
+                <thead>
+                  <tr>
+                    <th>Name</th>
+                    <th>Mobile</th>
+                    <th>Email</th>
+                    <th>Address</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {advocateParties.map((party) => (
+                    <tr key={party._id}>
+                      <td>{party.name}</td>
+                      <td>{party.mobile}</td>
+                      <td>{party.email}</td>
+                      <td>{party.address}</td>
+                      <td className="flex gap-2">
+                        <button
+                          className="btn btn-xs btn-success"
+                          onClick={() => handleEditParty(party)}
+                        >
+                          Update
+                        </button>
+                        <button
+                          className="btn btn-xs btn-error"
+                          onClick={() => handleDeleteParty(party)}
+                        >
+                          Delete
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          ) : (
+            <span className="text-gray-500">No advocate parties found.</span>
+          )}
         </Card>
 
         {/* Payment Details */}
